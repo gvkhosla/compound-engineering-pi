@@ -41,9 +41,10 @@ bunx compound-engineering-pi install compound-engineering --to pi --pi-home /tmp
 ## 5) Tag and release (GitHub)
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
-gh release create v0.1.1 --title "v0.1.1" --notes "npm publish + install docs improvements"
+VERSION=v0.1.2
+git tag "$VERSION"
+git push origin "$VERSION"
+gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES_v0.1.2.md
 ```
 
 ---

@@ -1,6 +1,6 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "private": false,
   "description": "Convert Claude Code Compound Engineering plugins to Pi, Codex, and OpenCode formats.",
@@ -14,8 +14,8 @@
     "converter"
   ],
   "bin": {
-    "compound-engineering-pi": "./src/index.ts",
-    "compound-plugin": "./src/index.ts"
+    "compound-engineering-pi": "./bin/compound-engineering-pi",
+    "compound-plugin": "./bin/compound-plugin"
   },
   "publishConfig": {
     "access": "public"
@@ -23,12 +23,21 @@
   "engines": {
     "bun": ">=1.3.0"
   },
+  "files": [
+    "bin",
+    "src",
+    "plugins",
+    "README.md",
+    "LICENSE",
+    "docs/pi.md"
+  ],
   "scripts": {
     "dev": "bun run src/index.ts",
     "convert": "bun run src/index.ts convert",
     "list": "bun run src/index.ts list",
     "cli:install": "bun run src/index.ts install",
-    "test": "bun test"
+    "test": "bun test",
+    "prepublishOnly": "bun test"
   },
   "dependencies": {
     "citty": "^0.1.6",
