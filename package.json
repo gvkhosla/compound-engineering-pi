@@ -1,22 +1,31 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "private": false,
-  "description": "Convert Claude Code Compound Engineering plugins to Pi, Codex, and OpenCode formats.",
+  "description": "Pi-first Compound Engineering extension with subagents and MCPorter compatibility.",
   "keywords": [
     "pi-package",
-    "compound-engineering",
     "pi",
-    "claude-code",
-    "codex",
-    "opencode",
-    "agent",
-    "converter"
+    "compound-engineering",
+    "mcporter",
+    "subagent",
+    "workflow",
+    "agent"
   ],
   "bin": {
     "compound-engineering-pi": "./bin/compound-engineering-pi",
     "compound-plugin": "./bin/compound-plugin"
+  },
+  "license": "MIT",
+  "author": "Geet Khosla",
+  "homepage": "https://github.com/gvkhosla/compound-engineering-pi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gvkhosla/compound-engineering-pi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gvkhosla/compound-engineering-pi/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -42,6 +51,9 @@
     "list": "bun run src/index.ts list",
     "cli:install": "bun run src/index.ts install",
     "test": "bun test",
+    "release:check": "bun test && npm pack --dry-run",
+    "release:publish": "npm publish --access public",
+    "release:ship": "npm run release:check && npm run release:publish",
     "prepublishOnly": "bun test"
   },
   "peerDependencies": {
@@ -57,7 +69,8 @@
     ],
     "prompts": [
       "./prompts"
-    ]
+    ],
+    "image": "https://opengraph.githubassets.com/1/gvkhosla/compound-engineering-pi"
   },
   "dependencies": {
     "citty": "^0.1.6",

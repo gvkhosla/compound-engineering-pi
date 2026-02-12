@@ -1,55 +1,79 @@
-# npm Publish Checklist
+# Publish to npm (super simple)
 
-This repository is configured to publish as:
+If this is your first time publishing, run these exact commands in order.
 
-- **package name:** `compound-engineering-pi`
-- **binary commands:**
-  - `compound-engineering-pi`
-  - `compound-plugin` (alias)
+## 0) Go to repo
 
-## 1) Log in to npm
+```bash
+cd /tmp/compound-engineering-pi
+```
+
+## 1) Login once
 
 ```bash
 npm login
 npm whoami
 ```
 
-## 2) Validate package before publish
+If `npm whoami` prints your username, you are ready.
+
+## 2) Run preflight checks
 
 ```bash
-bun install
-bun test
-npm pack --dry-run
+npm run release:check
 ```
 
+This runs tests + package dry run.
+
 ## 3) Publish
+
+```bash
+npm run release:publish
+```
+
+## 4) Verify it is live
+
+```bash
+npm view compound-engineering-pi version
+```
+
+You should see: `0.2.2`
+
+## 5) Verify Pi install path
+
+```bash
+pi install npm:compound-engineering-pi -l
+```
+
+---
+
+## If publish fails
+
+### `ENEEDAUTH`
+Run login again:
+
+```bash
+npm login
+```
+
+### `You do not have permission`
+Your npm account is not allowed to publish this package name.
+Use your own scoped package name in `package.json`, e.g.:
+
+```json
+"name": "@gvkhosla/compound-engineering-pi"
+```
+
+Then publish with:
 
 ```bash
 npm publish --access public
 ```
 
-## 4) Verify install paths
+### `version already exists`
+Bump version, then publish again:
 
 ```bash
-# CLI available through bunx
-bunx compound-engineering-pi --help
-
-# Pi conversion smoke test
-bunx compound-engineering-pi install compound-engineering --to pi --pi-home /tmp/pi-smoke/.pi
+npm version patch
+npm publish --access public
 ```
-
-## 5) Tag and release (GitHub)
-
-```bash
-VERSION=v0.1.2
-git tag "$VERSION"
-git push origin "$VERSION"
-gh release create "$VERSION" --title "$VERSION" --notes-file RELEASE_NOTES_v0.1.2.md
-```
-
----
-
-## Notes
-
-- CLI currently requires **Bun** runtime.
-- Pi MCP compatibility requires **MCPorter** installed in PATH.

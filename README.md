@@ -36,6 +36,7 @@ The Every plugin is excellent, but Pi has different runtime semantics. This exte
 
 - Pi project: https://github.com/mariozechner/pi-coding-agent
 - Pi package gallery: https://shittycodingagent.ai/packages
+- Discovery request opened with Pi maintainers: https://github.com/badlogic/pi-mono/issues/1480
 
 ### 2) Install MCPorter
 
@@ -46,7 +47,7 @@ npm i -g mcporter
 ### 3) Install this extension in Pi
 
 ```bash
-pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.1 -l
+pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.2 -l
 # or (after npm publish)
 pi install npm:compound-engineering-pi -l
 ```
@@ -56,6 +57,12 @@ pi install npm:compound-engineering-pi -l
 ```bash
 /reload
 pi -p "/workflows-plan Build a todo app"
+```
+
+Maintainer publish shortcut (first run `npm login` once):
+
+```bash
+npm run release:ship
 ```
 
 ---
