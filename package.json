@@ -1,0 +1,26 @@
+{
+  "name": "@every-env/compound-plugin",
+  "version": "0.3.0",
+  "type": "module",
+  "private": false,
+  "bin": {
+    "compound-plugin": "./src/index.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "convert": "bun run src/index.ts convert",
+    "list": "bun run src/index.ts list",
+    "cli:install": "bun run src/index.ts install",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "citty": "^0.1.6",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "bun-types": "^1.0.0"
+  }
+}

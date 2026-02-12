@@ -1,0 +1,8 @@
+{
+  "name": "custom-paths",
+  "version": "1.0.0",
+  "agents": "./custom-agents",
+  "commands": ["./custom-commands"],
+  "skills": "./custom-skills",
+  "hooks": "./custom-hooks/hooks.json"
+}

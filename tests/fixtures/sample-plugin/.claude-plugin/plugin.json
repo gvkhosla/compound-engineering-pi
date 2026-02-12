@@ -1,0 +1,30 @@
+{
+  "name": "compound-engineering",
+  "version": "2.27.0",
+  "description": "Fixture aligned with the Compound Engineering plugin",
+  "author": {
+    "name": "Kieran Klaassen",
+    "email": "kieran@every.to",
+    "url": "https://github.com/kieranklaassen"
+  },
+  "homepage": "https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it",
+  "repository": "https://github.com/EveryInc/compound-engineering-plugin",
+  "license": "MIT",
+  "keywords": [
+    "compound-engineering",
+    "workflow-automation",
+    "code-review",
+    "agents"
+  ],
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "local-tooling": {
+      "type": "stdio",
+      "command": "echo",
+      "args": ["fixture"]
+    }
+  }
+}
