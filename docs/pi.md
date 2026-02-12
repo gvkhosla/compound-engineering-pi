@@ -6,7 +6,7 @@ This guide explains how to use the Compound Engineering plugin in **Pi** with th
 
 ```bash
 # 1) Convert plugin to Pi resources
-bunx @every-env/compound-plugin install compound-engineering --to pi
+bunx compound-engineering-pi install compound-engineering --to pi
 
 # 2) Install MCPorter (for MCP-style tool access in Pi)
 npm i -g mcporter
@@ -87,7 +87,7 @@ You can extend this file with your own server definitions and auth headers as ne
 ## Sync your personal Claude setup into Pi
 
 ```bash
-bunx @every-env/compound-plugin sync --target pi
+bunx compound-engineering-pi sync --target pi
 ```
 
 This syncs:
@@ -100,7 +100,7 @@ This syncs:
 
 1. Start with side-by-side generation:
    ```bash
-   bunx @every-env/compound-plugin install compound-engineering --to opencode --also pi
+   bunx compound-engineering-pi install compound-engineering --to opencode --also pi
    ```
 2. Validate one real workflow (`/workflows-plan` + review loop).
 3. Keep generated resources in version control for team reproducibility.

@@ -1,9 +1,32 @@
 # Compound Marketplace
 
-[![Build Status](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/EveryInc/compound-engineering-plugin/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@every-env/compound-plugin)](https://www.npmjs.com/package/@every-env/compound-plugin)
+[![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/compound-engineering-pi)](https://www.npmjs.com/package/compound-engineering-pi)
 
 A Claude Code plugin marketplace featuring the **Compound Engineering Plugin** — tools that make each unit of engineering work easier than the last.
+
+## Quickstart (npm or clone)
+
+### Option A: Use from npm (recommended)
+
+> Requires [Bun](https://bun.sh/) (the CLI runtime) and `mcporter` for Pi MCP compatibility.
+
+```bash
+# One-time prerequisites
+npm i -g mcporter
+
+# Run directly with bunx
+bunx compound-engineering-pi install compound-engineering --to pi
+```
+
+### Option B: Clone and run locally
+
+```bash
+git clone https://github.com/gvkhosla/compound-engineering-pi.git
+cd compound-engineering-pi
+bun install
+bun run src/index.ts install ./plugins/compound-engineering --to pi
+```
 
 ## Claude Code Install
 
@@ -18,13 +41,13 @@ This repo includes a Bun/TypeScript CLI that converts Claude Code plugins to Ope
 
 ```bash
 # convert the compound-engineering plugin into OpenCode format
-bunx @every-env/compound-plugin install compound-engineering --to opencode
+bunx compound-engineering-pi install compound-engineering --to opencode
 
 # convert to Codex format
-bunx @every-env/compound-plugin install compound-engineering --to codex
+bunx compound-engineering-pi install compound-engineering --to codex
 
 # convert to Pi format
-bunx @every-env/compound-plugin install compound-engineering --to pi
+bunx compound-engineering-pi install compound-engineering --to pi
 ```
 
 Local dev:
@@ -79,13 +102,13 @@ Sync your personal Claude Code config (`~/.claude/`) to OpenCode, Codex, or Pi:
 
 ```bash
 # Sync skills and MCP servers to OpenCode
-bunx @every-env/compound-plugin sync --target opencode
+bunx compound-engineering-pi sync --target opencode
 
 # Sync to Codex
-bunx @every-env/compound-plugin sync --target codex
+bunx compound-engineering-pi sync --target codex
 
 # Sync to Pi (skills + MCPorter config)
-bunx @every-env/compound-plugin sync --target pi
+bunx compound-engineering-pi sync --target pi
 ```
 
 This syncs:
@@ -127,6 +150,7 @@ Compound engineering inverts this. 80% is in planning and review, 20% is in exec
 ## Learn More
 
 - [Pi guide](docs/pi.md) - setup, mapping, MCPorter usage, and community rollout
+- [npm publish checklist](NPM_PUBLISH.md) - release process for package distribution
 - [Full component reference](plugins/compound-engineering/README.md) - all agents, commands, skills
 - [Compound engineering: how Every codes with agents](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
 - [The story behind compounding engineering](https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it)
