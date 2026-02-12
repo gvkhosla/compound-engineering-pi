@@ -3,7 +3,10 @@
 [![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/compound-engineering-pi)](https://www.npmjs.com/package/compound-engineering-pi)
 
-A Claude Code plugin marketplace featuring the **Compound Engineering Plugin** — tools that make each unit of engineering work easier than the last.
+Pi-focused compatibility package for the **Every Compound Engineering Plugin**.
+
+For anything non-Pi (Claude Code-native behavior, canonical commands/skills/docs, and upstream issues), use the original repo:
+**https://github.com/EveryInc/compound-engineering-plugin**
 
 ## One-command Pi install (recommended)
 
@@ -24,6 +27,11 @@ Sanity check after install:
 ```bash
 pi -p "/workflows-plan Build a todo app"
 ```
+
+## Scope (what lives where)
+
+- **This repo (`gvkhosla/compound-engineering-pi`)**: Pi package + Pi compatibility layer + converter CLI.
+- **Upstream (`EveryInc/compound-engineering-plugin`)**: canonical plugin content, non-Pi docs, and core command/skill design.
 
 ## Quickstart (npm or clone)
 
@@ -48,16 +56,21 @@ bun install
 bun run src/index.ts install ./plugins/compound-engineering --to pi
 ```
 
-## Claude Code Install
+## Claude Code Install (upstream)
 
 ```bash
 /plugin marketplace add https://github.com/EveryInc/compound-engineering-plugin
 /plugin install compound-engineering
 ```
 
+If you are not targeting Pi, prefer working directly from the upstream repo:
+https://github.com/EveryInc/compound-engineering-plugin
+
 ## OpenCode + Codex + Pi (experimental) Install
 
 This repo includes a Bun/TypeScript CLI that converts Claude Code plugins to OpenCode, Codex, and Pi.
+The source plugin content comes from Every's upstream repo:
+https://github.com/EveryInc/compound-engineering-plugin
 
 ```bash
 # convert the compound-engineering plugin into OpenCode format
@@ -172,6 +185,6 @@ Compound engineering inverts this. 80% is in planning and review, 20% is in exec
 - [Pi guide](docs/pi.md) - setup, mapping, MCPorter usage, and community rollout
 - [Validation report](VALIDATION.md) - what was tested and how to verify locally
 - [npm publish checklist](NPM_PUBLISH.md) - release process for package distribution
-- [Full component reference](plugins/compound-engineering/README.md) - all agents, commands, skills
+- [Upstream component reference](https://github.com/EveryInc/compound-engineering-plugin/blob/main/plugins/compound-engineering/README.md) - canonical agents, commands, and skills
 - [Compound engineering: how Every codes with agents](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
 - [The story behind compounding engineering](https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it)
