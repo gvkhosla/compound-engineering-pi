@@ -1,6 +1,6 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "private": false,
   "description": "Pi-first Compound Engineering extension with subagents and MCPorter compatibility.",
@@ -14,8 +14,8 @@
     "agent"
   ],
   "bin": {
-    "compound-engineering-pi": "./bin/compound-engineering-pi",
-    "compound-plugin": "./bin/compound-plugin"
+    "compound-engineering-pi": "compound-engineering-pi",
+    "compound-plugin": "compound-plugin"
   },
   "license": "MIT",
   "author": "Geet Khosla",
@@ -41,6 +41,8 @@
     "skills",
     "prompts",
     "pi-resources",
+    "compound-engineering-pi",
+    "compound-plugin",
     "README.md",
     "LICENSE",
     "docs/pi.md"

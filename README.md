@@ -47,9 +47,10 @@ npm i -g mcporter
 ### 3) Install this extension in Pi
 
 ```bash
-pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.2 -l
-# or (after npm publish)
+# after npm publish:
 pi install npm:compound-engineering-pi -l
+# fallback (works now):
+pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.3 -l
 ```
 
 ### 4) Reload and test
