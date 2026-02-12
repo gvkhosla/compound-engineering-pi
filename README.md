@@ -1,124 +1,76 @@
 # Compound Engineering for Pi
 
-[![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/compound-engineering-pi)](https://www.npmjs.com/package/compound-engineering-pi)
+[![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
 
-Pi-first extension that takes the original Compound Engineering approach and makes it work smoothly in **Pi**.
+Compound Engineering adapted for [Pi](https://github.com/mariozechner/pi-coding-agent). 47 skills, 9 workflow prompts, and a native compatibility layer, all installable in one command.
 
-## 🙌 Credit to the original creators
+## Install
 
-This project builds directly on the original work by **Every** and **Kieran**.
+```bash
+pi install npm:compound-engineering-pi -l
+```
 
-- Upstream plugin (source of truth): https://github.com/EveryInc/compound-engineering-plugin
-- Compound engineering writeup: https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents
+Reload your session, then you're ready:
 
-If you’re using Claude Code, Codex, OpenCode, or anything non-Pi-focused, use the upstream repo above.
+```bash
+/reload
+```
 
----
+## Quick start
 
-## Why this exists
+```bash
+pi -p "/workflows-plan Build a todo app"
+pi -p "/workflows-work"
+pi -p "/workflows-review"
+pi -p "/workflows-compound"
+```
 
-The Every plugin is excellent, but Pi has different runtime semantics. This extension adapts the workflow for Pi so it feels native and works out of the box.
+These follow the core loop: **Plan, Work, Review, Compound**.
 
-### What this Pi extension adds
+## What's included
 
-- Native Pi package install
-- Prebuilt Pi resources (`prompts/`, `skills/`, `extensions/`)
-- Compatibility tool layer for Claude-style workflows
-- Subagent orchestration in Pi (`single`, `parallel`, `chain`)
-- MCP compatibility through **MCPorter** (`mcporter_list`, `mcporter_call`)
+### Workflow prompts
 
----
+| Prompt | What it does |
+|--------|-------------|
+| `/workflows-plan` | Create a structured project plan |
+| `/workflows-work` | Execute work from a plan |
+| `/workflows-review` | Multi-agent code review |
+| `/workflows-compound` | Document learnings for future sessions |
+| `/workflows-brainstorm` | Explore ideas before planning |
+| `/deepen-plan` | Add depth to an existing plan |
+| `/test-browser` | Run browser tests on your pages |
+| `/feature-video` | Record a video walkthrough of a feature |
+| `/resolve_todo_parallel` | Resolve all pending todos in parallel |
 
-## Install (recommended)
+### 47 skills
 
-### 1) Install Pi
+Code review, research, design, workflow automation, and more. Specialized reviewers for Rails, Python, and TypeScript. Security auditing, architecture analysis, design iteration, git worktree management, image generation, and browser automation.
 
-- Pi project: https://github.com/mariozechner/pi-coding-agent
-- Pi package gallery: https://shittycodingagent.ai/packages
-- Discovery request opened with Pi maintainers: https://github.com/badlogic/pi-mono/issues/1480
+Run `pi skills` after installing to see the full list.
 
-### 2) Install MCPorter
+### Pi compatibility extension
+
+Four tools that bridge common agent workflows into Pi:
+
+- `ask_user_question` - prompt the user for input
+- `subagent` - orchestrate tasks (`single`, `parallel`, `chain`)
+- `mcporter_list` - list available MCP servers
+- `mcporter_call` - call MCP server tools
+
+### Optional: MCP support via MCPorter
+
+For MCP interoperability, install [MCPorter](https://github.com/steipete/mcporter):
 
 ```bash
 npm i -g mcporter
 ```
 
-### 3) Install this extension in Pi
+## Credits
 
-```bash
-# after npm publish:
-pi install npm:compound-engineering-pi -l
-# fallback (works now):
-pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.3 -l
-```
+Built on the [Compound Engineering plugin](https://github.com/EveryInc/compound-engineering-plugin) by [Every](https://every.to) and [Kieran Klaassen](https://github.com/kieranklaassen). Read the [original writeup](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents).
 
-### 4) Reload and test
+## License
 
-```bash
-/reload
-pi -p "/workflows-plan Build a todo app"
-```
-
-Maintainer publish shortcut (first run `npm login` once):
-
-```bash
-npm run release:ship
-```
-
----
-
-## What you get immediately in Pi
-
-- Workflow prompts like `/workflows-plan`, `/workflows-work`, `/workflows-review`, `/workflows-compound`
-- Converted skills and reviewer agents
-- Pi compatibility extension with tools:
-  - `ask_user_question`
-  - `subagent`
-  - `mcporter_list`
-  - `mcporter_call`
-
-This keeps the same compounding loop in Pi:
-
-**Plan → Work → Review → Compound**
-
----
-
-## How MCP works here
-
-This extension uses **MCPorter** for MCP interoperability in Pi.
-
-- No assumption of Claude-native MCP runtime behavior
-- Uses `mcporter` CLI under the hood
-- Supports project/global config and bundled fallback config
-
-MCPorter project: https://github.com/steipete/mcporter
-
----
-
-## Advanced (Pi generation workflow)
-
-If you want to regenerate Pi output from the upstream plugin manually:
-
-```bash
-bunx compound-engineering-pi install compound-engineering --to pi --pi-home ~/.pi/agent
-```
-
----
-
-## Non-Pi usage (upstream)
-
-For all non-Pi usage and canonical plugin docs, use:
-
-- https://github.com/EveryInc/compound-engineering-plugin
-
-That includes Claude Code-native setup, canonical command/skill design, and upstream issues/roadmap.
-
----
-
-## Learn more
-
-- Pi guide for this extension: [docs/pi.md](docs/pi.md)
-- Validation report: [VALIDATION.md](VALIDATION.md)
-- npm release checklist: [NPM_PUBLISH.md](NPM_PUBLISH.md)
-- Upstream canonical component docs: https://github.com/EveryInc/compound-engineering-plugin/blob/main/plugins/compound-engineering/README.md
+MIT
