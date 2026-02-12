@@ -148,13 +148,36 @@ type ResolvedPluginPath = {
 }
 
 async function resolvePluginPath(input: string): Promise<ResolvedPluginPath> {
-  const directPath = path.resolve(input)
-  if (await pathExists(directPath)) return { path: directPath }
+  const raw = input.trim()
+  if (!raw) {
+    throw new Error("Plugin name or path is required.")
+  }
 
-  const pluginsPath = path.join(process.cwd(), "plugins", input)
-  if (await pathExists(pluginsPath)) return { path: pluginsPath }
+  const likelyPath =
+    raw.startsWith(".") ||
+    raw.startsWith("/") ||
+    raw.startsWith("~") ||
+    raw.includes(path.sep)
 
-  return await resolveGitHubPluginPath(input)
+  const directPath = path.resolve(expandHome(raw))
+  const pluginsPath = path.join(process.cwd(), "plugins", raw)
+
+  // If user passed an explicit path, honor it first.
+  if (likelyPath && (await pathExists(directPath))) {
+    return { path: directPath }
+  }
+
+  // For named installs, prefer bundled ./plugins/<name> to avoid collisions
+  // with similarly named directories in the repo root.
+  if (await pathExists(pluginsPath)) {
+    return { path: pluginsPath }
+  }
+
+  if (!likelyPath && (await pathExists(directPath))) {
+    return { path: directPath }
+  }
+
+  return await resolveGitHubPluginPath(raw)
 }
 
 function parseExtraTargets(value: unknown): string[] {

@@ -8,7 +8,7 @@ This guide explains how to use the Compound Engineering plugin in **Pi** with th
 
 ```bash
 # 1) Install as a Pi package
-pi install git:github.com/gvkhosla/compound-engineering-pi
+pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.1
 # (or npm: pi install npm:compound-engineering-pi)
 
 # 2) Install MCPorter (for MCP-style tool access in Pi)
@@ -32,6 +32,8 @@ You will get generated resources under your Pi directory:
 - `compound-engineering/mcporter.json` (MCPorter server config)
 
 The published package already includes prebuilt `extensions/`, `skills/`, and `prompts/` for Pi package installs.
+
+For package installs, `mcporter_list`/`mcporter_call` also fall back to a bundled config at `pi-resources/compound-engineering/mcporter.json` if no project/global config exists yet.
 
 ---
 

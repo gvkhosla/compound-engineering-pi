@@ -180,6 +180,51 @@ describe("CLI", () => {
     expect(await exists(path.join(tempRoot, ".config", "opencode", "agents", "repo-research-analyst.md"))).toBe(true)
   })
 
+  test("install prefers ./plugins/<name> over same-named cwd directory", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-plugin-name-collision-"))
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-plugin-workspace-"))
+    const fixtureRoot = path.join(import.meta.dir, "fixtures", "sample-plugin")
+
+    const pluginRoot = path.join(workspaceRoot, "plugins", "compound-engineering")
+    await fs.mkdir(path.dirname(pluginRoot), { recursive: true })
+    await fs.cp(fixtureRoot, pluginRoot, { recursive: true })
+
+    // Intentional collision: same folder name in cwd root, but not a plugin.
+    const conflictingPath = path.join(workspaceRoot, "compound-engineering")
+    await fs.mkdir(conflictingPath, { recursive: true })
+    await fs.writeFile(path.join(conflictingPath, "README.md"), "not a claude plugin")
+
+    const projectRoot = path.join(import.meta.dir, "..")
+    const proc = Bun.spawn([
+      "bun",
+      "run",
+      path.join(projectRoot, "src", "index.ts"),
+      "install",
+      "compound-engineering",
+      "--to",
+      "opencode",
+    ], {
+      cwd: workspaceRoot,
+      stdout: "pipe",
+      stderr: "pipe",
+      env: {
+        ...process.env,
+        HOME: tempRoot,
+      },
+    })
+
+    const exitCode = await proc.exited
+    const stdout = await new Response(proc.stdout).text()
+    const stderr = await new Response(proc.stderr).text()
+
+    if (exitCode !== 0) {
+      throw new Error(`CLI failed (exit ${exitCode}).\nstdout: ${stdout}\nstderr: ${stderr}`)
+    }
+
+    expect(stdout).toContain("Installed compound-engineering")
+    expect(await exists(path.join(tempRoot, ".config", "opencode", "opencode.json"))).toBe(true)
+  })
+
   test("convert writes OpenCode output", async () => {
     const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "cli-convert-"))
     const fixtureRoot = path.join(import.meta.dir, "fixtures", "sample-plugin")

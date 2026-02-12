@@ -1,6 +1,6 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "private": false,
   "description": "Convert Claude Code Compound Engineering plugins to Pi, Codex, and OpenCode formats.",
@@ -31,7 +31,7 @@
     "extensions",
     "skills",
     "prompts",
-    "compound-engineering",
+    "pi-resources",
     "README.md",
     "LICENSE",
     "docs/pi.md"

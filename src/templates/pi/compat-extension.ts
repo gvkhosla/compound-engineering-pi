@@ -1,6 +1,7 @@
 export const PI_COMPAT_EXTENSION_SOURCE = `import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent"
 import { Type } from "@sinclair/typebox"
 
@@ -43,6 +44,24 @@ function normalizeName(value: string): string {
     .replace(/^-+|-+$/g, "")
 }
 
+function resolveBundledMcporterConfigPath(): string | undefined {
+  try {
+    const extensionDir = path.dirname(fileURLToPath(import.meta.url))
+    const candidates = [
+      path.join(extensionDir, "..", "pi-resources", "compound-engineering", "mcporter.json"),
+      path.join(extensionDir, "..", "compound-engineering", "mcporter.json"),
+    ]
+
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate
+    }
+  } catch {
+    // noop: bundled path is best-effort fallback
+  }
+
+  return undefined
+}
+
 function resolveMcporterConfigPath(cwd: string, explicit?: string): string | undefined {
   if (explicit && explicit.trim()) {
     return path.resolve(explicit)
@@ -54,7 +73,7 @@ function resolveMcporterConfigPath(cwd: string, explicit?: string): string | und
   const globalPath = path.join(os.homedir(), ".pi", "agent", "compound-engineering", "mcporter.json")
   if (fs.existsSync(globalPath)) return globalPath
 
-  return undefined
+  return resolveBundledMcporterConfigPath()
 }
 
 function resolveTaskCwd(baseCwd: string, taskCwd?: string): string {

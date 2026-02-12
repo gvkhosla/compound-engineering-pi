@@ -10,14 +10,20 @@ A Claude Code plugin marketplace featuring the **Compound Engineering Plugin** â
 If you want it to **just work in Pi** like a native package:
 
 ```bash
-pi install git:github.com/gvkhosla/compound-engineering-pi
+pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.1
 # or (after npm publish)
 pi install npm:compound-engineering-pi
 ```
 
 Then restart Pi or run `/reload` in your project.
 
-This package now ships prebuilt Pi resources (`extensions/`, `skills/`, `prompts/`) so users do **not** need to run the converter first.
+This package ships prebuilt Pi resources (`extensions/`, `skills/`, `prompts/`) and a bundled MCPorter config fallback, so users do **not** need to run the converter first.
+
+Sanity check after install:
+
+```bash
+pi -p "/workflows-plan Build a todo app"
+```
 
 ## Quickstart (npm or clone)
 
@@ -164,6 +170,7 @@ Compound engineering inverts this. 80% is in planning and review, 20% is in exec
 ## Learn More
 
 - [Pi guide](docs/pi.md) - setup, mapping, MCPorter usage, and community rollout
+- [Validation report](VALIDATION.md) - what was tested and how to verify locally
 - [npm publish checklist](NPM_PUBLISH.md) - release process for package distribution
 - [Full component reference](plugins/compound-engineering/README.md) - all agents, commands, skills
 - [Compound engineering: how Every codes with agents](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
