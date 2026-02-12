@@ -1,10 +1,11 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "private": false,
   "description": "Convert Claude Code Compound Engineering plugins to Pi, Codex, and OpenCode formats.",
   "keywords": [
+    "pi-package",
     "compound-engineering",
     "pi",
     "claude-code",
@@ -27,6 +28,10 @@
     "bin",
     "src",
     "plugins",
+    "extensions",
+    "skills",
+    "prompts",
+    "compound-engineering",
     "README.md",
     "LICENSE",
     "docs/pi.md"
@@ -38,6 +43,21 @@
     "cli:install": "bun run src/index.ts install",
     "test": "bun test",
     "prepublishOnly": "bun test"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@sinclair/typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
   },
   "dependencies": {
     "citty": "^0.1.6",

@@ -5,6 +5,20 @@
 
 A Claude Code plugin marketplace featuring the **Compound Engineering Plugin** — tools that make each unit of engineering work easier than the last.
 
+## One-command Pi install (recommended)
+
+If you want it to **just work in Pi** like a native package:
+
+```bash
+pi install git:github.com/gvkhosla/compound-engineering-pi
+# or (after npm publish)
+pi install npm:compound-engineering-pi
+```
+
+Then restart Pi or run `/reload` in your project.
+
+This package now ships prebuilt Pi resources (`extensions/`, `skills/`, `prompts/`) so users do **not** need to run the converter first.
+
 ## Quickstart (npm or clone)
 
 ### Option A: Use from npm (recommended)

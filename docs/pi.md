@@ -4,16 +4,24 @@ This guide explains how to use the Compound Engineering plugin in **Pi** with th
 
 ## TL;DR
 
+### Fast path (just works)
+
 ```bash
-# 1) Convert plugin to Pi resources
-bunx compound-engineering-pi install compound-engineering --to pi
+# 1) Install as a Pi package
+pi install git:github.com/gvkhosla/compound-engineering-pi
+# (or npm: pi install npm:compound-engineering-pi)
 
 # 2) Install MCPorter (for MCP-style tool access in Pi)
 npm i -g mcporter
 
-# 3) Start Pi in your project and reload resources
-pi
+# 3) Reload Pi resources
 /reload
+```
+
+### Converter path (advanced/custom)
+
+```bash
+bunx compound-engineering-pi install compound-engineering --to pi
 ```
 
 You will get generated resources under your Pi directory:
@@ -22,6 +30,8 @@ You will get generated resources under your Pi directory:
 - `skills/` (plugin skills + generated reviewer skills)
 - `extensions/compound-engineering-compat.ts` (compat tools)
 - `compound-engineering/mcporter.json` (MCPorter server config)
+
+The published package already includes prebuilt `extensions/`, `skills/`, and `prompts/` for Pi package installs.
 
 ---
 
