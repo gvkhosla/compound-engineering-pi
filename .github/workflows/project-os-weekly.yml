@@ -1,0 +1,77 @@
+name: Project OS Weekly Reminder
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-weekly-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create weekly shipping issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            function getISOWeekData(date = new Date()) {
+              const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+              const dayNum = d.getUTCDay() || 7;
+              d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+              const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+              const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+              const year = d.getUTCFullYear();
+
+              const monday = new Date(Date.UTC(year, 0, 4));
+              const mondayDay = monday.getUTCDay() || 7;
+              monday.setUTCDate(monday.getUTCDate() - mondayDay + 1 + (week - 1) * 7);
+
+              const friday = new Date(monday);
+              friday.setUTCDate(monday.getUTCDate() + 4);
+
+              const fmt = (x) => x.toISOString().slice(0, 10);
+              return { year, week, monday: fmt(monday), friday: fmt(friday) };
+            }
+
+            const { owner, repo } = context.repo;
+            const data = getISOWeekData();
+            const weekId = `${data.year}-W${String(data.week).padStart(2, '0')}`;
+            const title = `Weekly Ship ${weekId}`;
+
+            const existing = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${owner}/${repo} is:issue is:open in:title "${title}"`
+            });
+
+            if (existing.data.total_count > 0) {
+              core.info(`Issue already exists: ${title}`);
+              return;
+            }
+
+            const body = [
+              `Project OS weekly execution window: **${data.monday} to ${data.friday}**`,
+              "",
+              "### Monday kickoff",
+              "- [ ] Run `python3 project-os/scripts/pick-next.py`",
+              "- [ ] Run `bash project-os/scripts/kickoff-week.sh`",
+              "- [ ] Lock one project scope in `project-os/weeks/<year>/W<week>/weekly-plan.md`",
+              "",
+              "### Build and ship",
+              "- [ ] Build Tuesday to Thursday",
+              "- [ ] Merge by Friday with CI green",
+              "- [ ] Complete `ship-review.md`",
+              "",
+              "### Rule",
+              "One project. Fixed scope. Shipped by Friday."
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body
+            });
+
+            core.info(`Created issue: ${title}`);

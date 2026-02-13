@@ -28,6 +28,19 @@ pi -p "/workflows-compound"
 
 These follow the core loop: **Plan, Work, Review, Compound**.
 
+## Project OS for weekly shipping
+
+A proactive weekly shipping system is included in [`project-os/`](./project-os/README.md).
+
+Use it to pick, scope, ship, and review one useful project each week:
+
+```bash
+python3 project-os/scripts/pick-next.py
+bash project-os/scripts/kickoff-week.sh
+```
+
+A scheduled workflow also creates a weekly reminder issue every Monday.
+
 ## What's included
 
 ### Workflow prompts
