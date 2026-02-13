@@ -98,7 +98,7 @@ Core workflow commands use `workflows:` prefix to avoid collisions with built-in
 | `/report-bug` | Report a bug in the plugin |
 | `/reproduce-bug` | Reproduce bugs using logs and console |
 | `/resolve_parallel` | Resolve TODO comments in parallel |
-| `/resolve_pr_parallel` | Resolve PR comments in parallel |
+| `/resolve-pr-parallel` | Resolve PR comments in parallel |
 | `/resolve_todo_parallel` | Resolve todos in parallel |
 | `/triage` | Triage and prioritize issues |
 | `/test-browser` | Run browser tests on PR-affected pages |
