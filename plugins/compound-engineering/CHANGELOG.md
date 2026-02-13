@@ -5,6 +5,12 @@ All notable changes to the compound-engineering plugin will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.31.2] - 2026-02-13
+
+### Fixed
+
+- **`resolve-pr-parallel` skill naming compliance** — Updated skill frontmatter name to `resolve-pr-parallel` (hyphen-case) and aligned command references in docs to avoid Pi package validation warnings for invalid skill names.
+
 ## [2.31.1] - 2026-02-09
 
 ### Changed
