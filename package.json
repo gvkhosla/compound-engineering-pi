@@ -1,6 +1,6 @@
 {
   "name": "compound-engineering-pi",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "private": false,
   "description": "Pi-first Compound Engineering extension with subagents and MCPorter compatibility.",
