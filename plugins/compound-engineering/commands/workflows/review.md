@@ -485,7 +485,7 @@ After presenting the Summary Report, offer appropriate testing based on project 
 Spawn a subagent to run browser tests (preserves main context):
 
 ```
-Task general-purpose("Run /test-browser for PR #[number]. Test all affected pages, check for console errors, handle failures by creating todos and fixing.")
+Task general-purpose("Invoke `/test-browser` as a prompt for PR #[number]. Test all affected pages, check for console errors, handle failures by creating todos and fixing. Never run `/test-browser` directly via bash.")
 ```
 
 The subagent will:
@@ -504,7 +504,7 @@ The subagent will:
 Spawn a subagent to run Xcode tests (preserves main context):
 
 ```
-Task general-purpose("Run /xcode-test for scheme [name]. Build for simulator, install, launch, take screenshots, check for crashes.")
+Task general-purpose("Invoke `/xcode-test` as a prompt for scheme [name]. Build for simulator, install, launch, take screenshots, check for crashes. Never run `/xcode-test` directly via bash.")
 ```
 
 The subagent will:

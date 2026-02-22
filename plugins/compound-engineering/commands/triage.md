@@ -305,7 +305,7 @@ When done give these options
 ```markdown
 What would you like to do next?
 
-1. run /resolve_todo_parallel to resolve the todos
+1. invoke `/resolve_todo_parallel` as a prompt to resolve the todos
 2. commit the todos
 3. nothing, go chill
 ```

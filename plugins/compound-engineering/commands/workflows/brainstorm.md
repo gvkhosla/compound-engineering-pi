@@ -86,7 +86,7 @@ Use **AskUserQuestion tool** to present next steps:
 
 **Options:**
 1. **Review and refine** - Improve the document through structured self-review
-2. **Proceed to planning** - Run `/workflows:plan` (will auto-detect this brainstorm)
+2. **Proceed to planning** - Invoke `/workflows:plan` as a prompt (will auto-detect this brainstorm)
 3. **Done for now** - Return later
 
 **If user selects "Review and refine":**
@@ -95,8 +95,8 @@ Load the `document-review` skill and apply it to the brainstorm document.
 
 When document-review returns "Review complete", present next steps:
 
-1. **Move to planning** - Continue to `/workflows:plan` with this document
-2. **Done for now** - Brainstorming complete. To start planning later: `/workflows:plan [document-path]`
+1. **Move to planning** - Continue by invoking `/workflows:plan` with this document
+2. **Done for now** - Brainstorming complete. To start planning later, invoke `/workflows:plan [document-path]`
 
 ## Output Summary
 
@@ -111,7 +111,7 @@ Key decisions:
 - [Decision 1]
 - [Decision 2]
 
-Next: Run `/workflows:plan` when ready to implement.
+Next: Invoke `/workflows:plan` when ready to implement.
 ```
 
 ## Important Guidelines

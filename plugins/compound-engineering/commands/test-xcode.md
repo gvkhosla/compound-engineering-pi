@@ -328,5 +328,5 @@ mcp__xcodebuildmcp__shutdown_simulator({ simulator_id: "[uuid]" })
 When reviewing PRs that touch iOS code, the `/workflows:review` command can spawn this as a subagent:
 
 ```
-Task general-purpose("Run /xcode-test for scheme [name]. Build, install on simulator, test key screens, check for crashes.")
+Task general-purpose("Invoke `/xcode-test` as a prompt for scheme [name]. Build, install on simulator, test key screens, check for crashes. Never run `/xcode-test` directly via bash.")
 ```

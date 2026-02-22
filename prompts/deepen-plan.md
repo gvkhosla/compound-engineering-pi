@@ -479,17 +479,19 @@ After writing the enhanced plan, use the **ask_user_question tool** to present t
 
 **Options:**
 1. **View diff** - Show what was added/changed
-2. **Run `/technical_review`** - Get feedback from reviewers on enhanced plan
-3. **Start `/workflows-work`** - Begin implementing this enhanced plan
+2. **Use `/technical_review`** - Get feedback from reviewers on enhanced plan
+3. **Use `/workflows-work`** - Begin implementing this enhanced plan
 4. **Deepen further** - Run another round of research on specific sections
 5. **Revert** - Restore original plan (if backup exists)
 
 Based on selection:
 - **View diff** → Run `git diff [plan_path]` or show before/after
-- **`/technical_review`** → Call the /technical_review command with the plan file path
-- **`/workflows-work`** → Call the /workflows-work command with the plan file path
+- **`/technical_review`** → Run `pi --no-session -p "/technical_review [plan_path]"`
+- **`/workflows-work`** → Run `pi --no-session -p "/workflows-work [plan_path]"`
 - **Deepen further** → Ask which sections need more research, then re-run those agents
 - **Revert** → Restore from git or backup
+
+**Important:** Slash commands (like `/workflows-work`) are Pi prompt templates, not shell executables. Never run `/...` directly via bash.
 
 ## Example Enhancement
 

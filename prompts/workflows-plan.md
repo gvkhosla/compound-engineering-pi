@@ -496,24 +496,26 @@ After writing the plan file, use the **ask_user_question tool** to present these
 
 **Options:**
 1. **Open plan in editor** - Open the plan file for review
-2. **Run `/deepen-plan`** - Enhance each section with parallel research agents (best practices, performance, UI)
-3. **Run `/technical_review`** - Technical feedback from code-focused reviewers (DHH, Kieran, Simplicity)
+2. **Use `/deepen-plan`** - Enhance each section with parallel research agents (best practices, performance, UI)
+3. **Use `/technical_review`** - Technical feedback from code-focused reviewers (DHH, Kieran, Simplicity)
 4. **Review and refine** - Improve the document through structured self-review
-5. **Start `/workflows-work`** - Begin implementing this plan locally
-6. **Start `/workflows-work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
+5. **Use `/workflows-work`** - Begin implementing this plan locally
+6. **Use `/workflows-work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
 7. **Create Issue** - Create issue in project tracker (GitHub/Linear)
 
 Based on selection:
 - **Open plan in editor** → Run `open docs/plans/<plan_filename>.md` to open the file in the user's default editor
-- **`/deepen-plan`** → Call the /deepen-plan command with the plan file path to enhance with research
-- **`/technical_review`** → Call the /technical_review command with the plan file path
+- **`/deepen-plan`** → Run `pi --no-session -p "/deepen-plan docs/plans/<plan_filename>.md"` to enhance with research
+- **`/technical_review`** → Run `pi --no-session -p "/technical_review docs/plans/<plan_filename>.md"`
 - **Review and refine** → Load `document-review` skill.
-- **`/workflows-work`** → Call the /workflows-work command with the plan file path
-- **`/workflows-work` on remote** → Run `/workflows-work docs/plans/<plan_filename>.md &` to start work in background for Claude Code web
+- **`/workflows-work`** → Run `pi --no-session -p "/workflows-work docs/plans/<plan_filename>.md"`
+- **`/workflows-work` on remote** → Run `pi --no-session -p "/workflows-work docs/plans/<plan_filename>.md" &` to start work in background
 - **Create Issue** → See "Issue Creation" section below
 - **Other** (automatically provided) → Accept free text for rework or specific changes
 
-**Note:** If running `/workflows-plan` with ultrathink enabled, automatically run `/deepen-plan` after plan creation for maximum depth and grounding.
+**Important:** Slash commands (like `/deepen-plan`) are Pi prompt templates, not shell executables. Never run `/...` directly via bash.
+
+**Note:** If running `/workflows-plan` with ultrathink enabled, automatically run `/deepen-plan` after plan creation by invoking `pi --no-session -p "/deepen-plan docs/plans/<plan_filename>.md"`.
 
 Loop back to options after Simplify or Other changes until user selects `/workflows-work` or `/technical_review`.
 

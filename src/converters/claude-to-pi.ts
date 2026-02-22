@@ -127,6 +127,36 @@ function transformContentForPi(body: string): string {
     return `/${normalizeName(withoutPrefix)}`
   })
 
+  result = rewriteSlashCommandExecutionForPi(result)
+
+  return result
+}
+
+function rewriteSlashCommandExecutionForPi(body: string): string {
+  let result = body
+
+  result = result.replace(/Call the \/([a-z][a-z0-9_-]*) command/gi, (_match, commandName: string) => {
+    return `Invoke \`/${commandName}\` as a Pi prompt (never as a direct bash command)`
+  })
+
+  result = result.replace(/Run `\/([a-z][a-z0-9_-]*)([^`]*)`/gi, (_match, commandName: string, rawArgs: string) => {
+    let args = (rawArgs ?? "").trim()
+    let backgroundSuffix = ""
+
+    if (args.endsWith("&")) {
+      args = args.slice(0, -1).trimEnd()
+      backgroundSuffix = " &"
+    }
+
+    const prompt = args.length > 0 ? `/${commandName} ${args}` : `/${commandName}`
+    const escapedPrompt = prompt.replace(/"/g, '\\"')
+    return `Run \`pi --no-session -p "${escapedPrompt}"${backgroundSuffix}\``
+  })
+
+  if (result !== body && !result.includes("Slash commands are Pi prompt templates")) {
+    result += "\n\n**Important:** Slash commands are Pi prompt templates, not shell executables. Never run `/...` directly via bash."
+  }
+
   return result
 }
 

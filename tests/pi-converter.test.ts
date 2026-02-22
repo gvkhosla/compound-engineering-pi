@@ -58,6 +58,8 @@ describe("convertClaudeToPi", () => {
             "- Task learnings-researcher(feature_description)",
             "Use AskUserQuestion tool for follow-up.",
             "Then use /workflows:work and /prompts:deepen-plan.",
+            "Call the /deepen-plan command with the plan file path.",
+            "Run `/workflows:work docs/plans/plan.md &` to continue remotely.",
             "Track progress with TodoWrite and TodoRead.",
           ].join("\n"),
           sourcePath: "/tmp/plugin/commands/plan.md",
@@ -82,6 +84,9 @@ describe("convertClaudeToPi", () => {
     expect(parsedPrompt.body).toContain("ask_user_question")
     expect(parsedPrompt.body).toContain("/workflows-work")
     expect(parsedPrompt.body).toContain("/deepen-plan")
+    expect(parsedPrompt.body).toContain("Invoke `/deepen-plan` as a Pi prompt (never as a direct bash command)")
+    expect(parsedPrompt.body).toContain('Run `pi --no-session -p "/workflows-work docs/plans/plan.md" &`')
+    expect(parsedPrompt.body).toContain("Slash commands are Pi prompt templates, not shell executables")
     expect(parsedPrompt.body).toContain("file-based todos (todos/ + /skill:file-todos)")
   })
 
