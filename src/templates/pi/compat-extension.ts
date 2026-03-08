@@ -86,6 +86,30 @@ function resolveTaskCwd(baseCwd: string, taskCwd?: string): string {
   return path.resolve(baseCwd, expanded)
 }
 
+function isPackageConfigured(name: string): boolean {
+  const settingsFiles = [
+    path.join(os.homedir(), ".pi", "settings.json"),
+    path.join(os.homedir(), ".pi", "agent", "settings.json"),
+  ]
+  const packagePrefix = "npm:" + name
+
+  for (const file of settingsFiles) {
+    try {
+      if (!fs.existsSync(file)) continue
+      const raw = fs.readFileSync(file, "utf8")
+      const parsed = JSON.parse(raw) as { packages?: string[] }
+      const packages = Array.isArray(parsed.packages) ? parsed.packages : []
+      if (packages.some((entry) => entry === packagePrefix || entry.startsWith(packagePrefix + "@"))) {
+        return true
+      }
+    } catch {
+      // ignore malformed settings files
+    }
+  }
+
+  return false
+}
+
 async function runSingleSubagent(
   pi: ExtensionAPI,
   baseCwd: string,
@@ -168,6 +192,7 @@ function formatSubagentSummary(results: SubagentResult[]): string {
   return header + lines.join("\\n")
 }
 
+
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "ask_user_question",
@@ -244,8 +269,11 @@ export default function (pi: ExtensionAPI) {
     cwd: Type.Optional(Type.String({ description: "Optional working directory for this task" })),
   })
 
-  pi.registerTool({
-    name: "subagent",
+  if (isPackageConfigured("pi-subagents")) {
+    console.warn('[compound-engineering] Skipping tool registration for "subagent" because pi-subagents is installed.')
+  } else {
+    pi.registerTool({
+      name: "subagent",
     label: "Subagent",
     description: "Run one or more skill-based subagent tasks. Supports single, parallel, and chained execution.",
     parameters: Type.Object({
@@ -361,6 +389,7 @@ export default function (pi: ExtensionAPI) {
       }
     },
   })
+  }
 
   pi.registerTool({
     name: "mcporter_list",
