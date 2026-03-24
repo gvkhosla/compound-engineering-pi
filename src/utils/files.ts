@@ -75,3 +75,29 @@ export async function copyDir(sourceDir: string, targetDir: string): Promise<voi
     }
   }
 }
+
+export async function copySkillDir(
+  sourceDir: string,
+  targetDir: string,
+  transformSkillContent?: (content: string) => string,
+): Promise<void> {
+  await ensureDir(targetDir)
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const sourcePath = path.join(sourceDir, entry.name)
+    const targetPath = path.join(targetDir, entry.name)
+
+    if (entry.isDirectory()) {
+      await copySkillDir(sourcePath, targetPath, transformSkillContent)
+    } else if (entry.isFile()) {
+      if (entry.name === "SKILL.md" && transformSkillContent) {
+        const content = await readText(sourcePath)
+        await writeText(targetPath, transformSkillContent(content))
+      } else {
+        await ensureDir(path.dirname(targetPath))
+        await fs.copyFile(sourcePath, targetPath)
+      }
+    }
+  }
+}

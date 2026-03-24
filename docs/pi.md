@@ -33,7 +33,9 @@ You will get generated resources under your Pi directory:
 - `extensions/compound-engineering-compat.ts` (compat tools)
 - `compound-engineering/mcporter.json` (MCPorter server config)
 
-The published package already includes prebuilt `extensions/`, `skills/`, and `prompts/` for Pi package installs.
+The published package already includes prebuilt `extensions/`, `skills/`, and compatibility `prompts/` for Pi package installs.
+
+This repo now tracks the newer upstream Compound Engineering skill set while keeping the older `/workflows-*` prompts as Pi-friendly compatibility aliases.
 
 For package installs, `mcporter_list`/`mcporter_call` also fall back to a bundled config at `pi-resources/compound-engineering/mcporter.json` if no project/global config exists yet.
 
@@ -115,6 +117,14 @@ This syncs:
 - MCP servers from `~/.claude/settings.json` into Pi MCPorter config
 
 ---
+
+## Keeping this package synced with upstream
+
+```bash
+bun run sync:upstream
+```
+
+By default this pulls from a sibling checkout at `../compound-engineering-plugin`, refreshes the vendored `plugins/compound-engineering` snapshot, and regenerates the bundled Pi skills/MCPorter config.
 
 ## Recommended OSS adoption flow
 

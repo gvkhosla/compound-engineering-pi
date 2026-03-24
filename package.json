@@ -56,6 +56,7 @@
     "release:check": "bun test && npm pack --dry-run",
     "release:publish": "npm publish --access public",
     "release:ship": "npm run release:check && npm run release:publish",
+    "sync:upstream": "bun run scripts/sync-upstream-pi.ts",
     "prepublishOnly": "bun test"
   },
   "peerDependencies": {

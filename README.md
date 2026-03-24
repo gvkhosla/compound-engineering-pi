@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/compound-engineering-pi)](https://www.npmjs.com/package/compound-engineering-pi)
 [![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
 
-Compound Engineering adapted for [Pi](https://github.com/mariozechner/pi-coding-agent). 47 skills, 9 workflow prompts, and a native compatibility layer, all installable in one command.
+Compound Engineering adapted for [Pi](https://github.com/mariozechner/pi-coding-agent). 84 skills, 9 legacy workflow prompts for compatibility, and a native compatibility layer, all installable in one command.
 
 ## Install
 
@@ -19,6 +19,8 @@ Reload your session, then you're ready:
 
 ## Quick start
 
+Legacy prompt aliases still work:
+
 ```bash
 pi -p "/workflows-plan Build a todo app"
 pi -p "/workflows-work"
@@ -26,11 +28,20 @@ pi -p "/workflows-review"
 pi -p "/workflows-compound"
 ```
 
+And the newer upstream workflow skills are bundled too:
+
+```bash
+pi -p "/skill:ce:plan Build a todo app"
+pi -p "/skill:ce:work"
+pi -p "/skill:ce:review"
+pi -p "/skill:ce:compound"
+```
+
 These follow the core loop: **Plan, Work, Review, Compound**.
 
 ## What's included
 
-### Workflow prompts
+### Legacy workflow prompts
 
 | Prompt | What it does |
 |--------|-------------|
@@ -44,9 +55,9 @@ These follow the core loop: **Plan, Work, Review, Compound**.
 | `/feature-video` | Record a video walkthrough of a feature |
 | `/resolve_todo_parallel` | Resolve all pending todos in parallel |
 
-### 47 skills
+### 84 skills
 
-Code review, research, design, workflow automation, and more. Specialized reviewers for Rails, Python, and TypeScript. Security auditing, architecture analysis, design iteration, git worktree management, image generation, and browser automation.
+This package now bundles the newer upstream Compound Engineering skill set for Pi, including the `ce:*` workflow skills, reviewer personas, planning/document-review personas, browser/video workflows, and the older specialized research/review skills that still power the legacy prompts.
 
 Run `pi skills` after installing to see the full list.
 
@@ -64,6 +75,16 @@ Subagent output behavior:
 - chain runs return the final step output plus a step summary
 - parallel runs stay compact by default, but support `includeOutputs: true`
 - if you install a richer `pi-subagents` package, this package automatically defers to it
+
+### Upstream sync
+
+The vendored `plugins/compound-engineering` snapshot and bundled Pi skills can now be refreshed from the main plugin repo with:
+
+```bash
+bun run sync:upstream
+```
+
+By default this syncs from `../compound-engineering-plugin`. Override with `COMPOUND_PLUGIN_SOURCE=/path/to/compound-engineering-plugin` if needed.
 
 ### Optional: MCP support via MCPorter
 
