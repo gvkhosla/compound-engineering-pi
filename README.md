@@ -7,6 +7,8 @@ Compound Engineering adapted for [Pi](https://github.com/mariozechner/pi-coding-
 
 ## Install
 
+Use this package as the Pi install/distribution layer:
+
 ```bash
 pi install npm:compound-engineering-pi -l
 ```
@@ -76,9 +78,17 @@ Subagent output behavior:
 - parallel runs stay compact by default, but support `includeOutputs: true`
 - if you install a richer `pi-subagents` package, this package automatically defers to it
 
-### Upstream sync
+### Conversion and sync
 
-The vendored `plugins/compound-engineering` snapshot and bundled Pi skills can now be refreshed from the main plugin repo with:
+For converter usage, prefer the upstream package:
+
+```bash
+bunx @every-env/compound-plugin install compound-engineering --to pi
+```
+
+This repo’s bundled package should mainly be used via `pi install npm:compound-engineering-pi`.
+
+The vendored `plugins/compound-engineering` snapshot and bundled Pi skills can be refreshed from the main plugin repo with:
 
 ```bash
 bun run sync:upstream

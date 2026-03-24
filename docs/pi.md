@@ -22,9 +22,13 @@ npm i -g mcporter
 
 ### Converter path (advanced/custom)
 
+Prefer the upstream converter package:
+
 ```bash
-bunx compound-engineering-pi install compound-engineering --to pi
+bunx @every-env/compound-plugin install compound-engineering --to pi
 ```
+
+The local `compound-engineering-pi` CLI remains available for compatibility, but upstream is the canonical place for converter behavior.
 
 You will get generated resources under your Pi directory:
 
