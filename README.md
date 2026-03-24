@@ -59,6 +59,12 @@ Four tools that bridge common agent workflows into Pi:
 - `mcporter_list` - list available MCP servers
 - `mcporter_call` - call MCP server tools
 
+Subagent output behavior:
+- single runs return the full subagent output
+- chain runs return the final step output plus a step summary
+- parallel runs stay compact by default, but support `includeOutputs: true`
+- if you install a richer `pi-subagents` package, this package automatically defers to it
+
 ### Optional: MCP support via MCPorter
 
 For MCP interoperability, install [MCPorter](https://github.com/steipete/mcporter):

@@ -77,6 +77,12 @@ Supports:
 - **parallel**: `{ tasks: [...] }`
 - **chain**: `{ chain: [...] }` with `{previous}` placeholder support
 
+Behavior notes:
+- **single mode returns the full subagent output** in the final tool result
+- **chain mode returns the final step output** plus a step summary
+- **parallel mode returns a compact summary by default**; pass `includeOutputs: true` to include full output for each completed subagent
+- if you install a richer `pi-subagents` package, this compatibility extension will automatically step aside and let that tool handle subagents instead
+
 ### `mcporter_list`
 Lists tools for an MCP server via MCPorter.
 
@@ -144,6 +150,12 @@ Check:
 - target skill exists in `.pi/skills/<name>/SKILL.md`
 - nested Pi call works: `pi --no-session -p "/skill:<name> ..."`
 - permissions/sandbox rules in your environment
+
+### I want to see more subagent output
+- single subagents now return their full output in the tool result
+- chain runs return the final step output plus a step summary
+- parallel runs can return all outputs with `includeOutputs: true`
+- if you prefer a richer live subagent UI, install `pi-subagents`; `compound-engineering-pi` will automatically defer to it when present
 
 ---
 
