@@ -609,26 +609,28 @@ After writing the plan file, use the **ask_user_question tool** to present these
 3. **Use `/technical_review`** - Technical feedback from code-focused reviewers (DHH, Kieran, Simplicity)
 4. **Review and refine** - Improve the document through structured self-review
 5. **Share to Proof** - Upload to Proof for collaborative review and sharing
-6. **Use `/workflows-work`** - Begin implementing this plan locally
+6. **Use `/workflows-work`** - Begin implementing this plan locally. Pi will hand work off in a fresh session context when this plan already exists on disk.
 7. **Use `/workflows-work` on remote** - Begin implementing in Claude Code on the web (use `&` to run in background)
 8. **Create Issue** - Create issue in project tracker (GitHub/Linear)
 
 Based on selection:
-- **Open plan in editor** → Run `open docs/plans/<plan_filename>.md` to open the file in the user's default editor
-- **`/deepen-plan`** → Run `pi --no-session -p "/deepen-plan docs/plans/<plan_filename>.md"` to enhance with research
-- **`/technical_review`** → Run `pi --no-session -p "/technical_review docs/plans/<plan_filename>.md"`
+- **Open plan in editor** → Open `docs/plans/<plan_filename>.md` for the user if possible.
+- **`/deepen-plan`** → Do **not** spawn a nested `pi` process. Instead, tell the user to run `/deepen-plan docs/plans/<plan_filename>.md` next. Pi's command runtime will handle session-native handoff.
+- **`/technical_review`** → Do **not** spawn a nested `pi` process. Instead, tell the user to run `/technical_review docs/plans/<plan_filename>.md` next.
 - **Review and refine** → Load `document-review` skill.
-- **Share to Proof** → Upload the plan to Proof, display the returned URL prominently, and if upload fails skip silently then return to the options
-- **`/workflows-work`** → Run `pi --no-session -p "/workflows-work docs/plans/<plan_filename>.md"`
-- **`/workflows-work` on remote** → Run `pi --no-session -p "/workflows-work docs/plans/<plan_filename>.md" &` to start work in background
-- **Create Issue** → See "Issue Creation" section below
-- **Other** (automatically provided) → Accept free text for rework or specific changes
+- **Share to Proof** → Upload the plan to Proof, display the returned URL prominently, and if upload fails skip silently then return to the options.
+- **`/workflows-work`** → Do **not** spawn a nested `pi` process. Instead, tell the user to run `/workflows-work docs/plans/<plan_filename>.md` next. Pi's command runtime will handle the fresh-session work handoff natively.
+- **`/workflows-work` on remote** → Only if the user explicitly wants remote/background execution, explain the exact command to run out-of-band. Do not launch a background `pi` process automatically from inside this planning run.
+- **Create Issue** → See "Issue Creation" section below.
+- **Other** (automatically provided) → Accept free text for rework or specific changes.
 
-**Important:** Slash commands (like `/deepen-plan`) are Pi prompt templates, not shell executables. Never run `/...` directly via bash.
+**Important:** Slash commands (like `/deepen-plan`) are Pi command/runtime features, not shell executables. Never launch local slash-command follow-ups by shelling out to nested `pi --no-session` processes from inside this workflow.
 
-**Note:** If running `/workflows-plan` with ultrathink enabled, automatically run `/deepen-plan` after plan creation by invoking `pi --no-session -p "/deepen-plan docs/plans/<plan_filename>.md"`.
+**Important:** The post-plan handoff should stay session-native and user-visible. Do not use `subagent` or nested `pi` CLI processes as a substitute for `/workflows-work`.
 
-Loop back to options after Simplify or Other changes until user selects `/workflows-work` or `/technical_review`.
+**Note:** Even with ultrathink enabled, do **not** auto-run `/deepen-plan` by spawning a nested `pi` process. Offer the next-step command explicitly instead.
+
+Loop back to options after Simplify or Other changes until user selects a next-step command or exits.
 
 ## Issue Creation
 

@@ -40,7 +40,7 @@ import {
 } from "@mariozechner/pi-tui";
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { buildCeWorkflowContextSummary, loadCeWorkflowContext, mergeCeWorkflowContext } from "../src/workflow-context.ts";
+import { buildCeWorkflowContextSummary, parseMarkdownFrontmatter } from "../src/workflow-context.ts";
 
 // State to track fresh session review (where we branched from).
 // Module-level state means only one review can be active at a time.
@@ -396,7 +396,37 @@ function normalizeReviewFindingKey(value: string): string {
 		.trim();
 }
 
-async function loadExistingCeTodoFiles(cwd: string): Promise<{ filePath: string; content: string }[]> {
+type ExistingCeTodoFile = {
+	filePath: string;
+	content: string;
+	status?: string;
+	priority?: string;
+	sourceFeatureId?: string;
+	sourcePlan?: string;
+	sourceBranch?: string;
+	sourcePr?: string;
+};
+
+function normalizeMaybePath(value: string | undefined): string | undefined {
+	if (!value?.trim()) return undefined;
+	return value.trim().replace(/\\/g, "/");
+}
+
+function isRelevantCeTodoForContext(todo: ExistingCeTodoFile, context?: CeResolvedSourceContext): boolean {
+	if (!context) return todo.status === "pending" || todo.status === "ready";
+	if (todo.status !== "pending" && todo.status !== "ready") return false;
+
+	const matchesPr = context.prNumber !== undefined && todo.sourcePr === String(context.prNumber);
+	const matchesBranch = Boolean(context.branch && todo.sourceBranch === context.branch);
+	const matchesPlan = Boolean(context.planPath && normalizeMaybePath(todo.sourcePlan) === normalizeMaybePath(context.planPath));
+	const matchesFeature = Boolean(context.featureId && todo.sourceFeatureId === context.featureId);
+
+	if (matchesPr || matchesBranch || matchesPlan) return true;
+	if (matchesFeature) return true;
+	return false;
+}
+
+async function loadExistingCeTodoFiles(cwd: string, context?: CeResolvedSourceContext): Promise<ExistingCeTodoFile[]> {
 	const todosDir = path.join(cwd, CE_TODO_REVIEW_DIR);
 	const entries = await fs.readdir(todosDir, { withFileTypes: true }).catch(() => []);
 	const files = entries
@@ -404,20 +434,34 @@ async function loadExistingCeTodoFiles(cwd: string): Promise<{ filePath: string;
 		.map((entry) => entry.name)
 		.sort();
 
-	const results: { filePath: string; content: string }[] = [];
-	let usedBytes = 0;
-
-	for (const name of files.slice(0, MAX_EXISTING_TODO_FILES)) {
+	const allTodos: ExistingCeTodoFile[] = [];
+	for (const name of files) {
 		const filePath = path.join(todosDir, name);
 		const content = await fs.readFile(filePath, "utf8").catch(() => "");
 		if (!content.trim()) continue;
+		const frontmatter = parseMarkdownFrontmatter(content);
+		allTodos.push({
+			filePath,
+			content,
+			status: typeof frontmatter.status === "string" ? frontmatter.status : undefined,
+			priority: typeof frontmatter.priority === "string" ? frontmatter.priority : undefined,
+			sourceFeatureId: typeof frontmatter.source_feature_id === "string" ? frontmatter.source_feature_id : undefined,
+			sourcePlan: typeof frontmatter.source_plan === "string" ? frontmatter.source_plan : undefined,
+			sourceBranch: typeof frontmatter.source_branch === "string" ? frontmatter.source_branch : undefined,
+			sourcePr: typeof frontmatter.source_pr === "string" ? frontmatter.source_pr : undefined,
+		});
+	}
 
-		const nextBytes = Buffer.byteLength(content, "utf8");
+	const relevantTodos = allTodos.filter((todo) => isRelevantCeTodoForContext(todo, context));
+	const results: ExistingCeTodoFile[] = [];
+	let usedBytes = 0;
+
+	for (const todo of relevantTodos.slice(0, MAX_EXISTING_TODO_FILES)) {
+		const nextBytes = Buffer.byteLength(todo.content, "utf8");
 		if (results.length > 0 && usedBytes + nextBytes > MAX_EXISTING_TODO_BYTES) {
 			break;
 		}
-
-		results.push({ filePath, content });
+		results.push(todo);
 		usedBytes += nextBytes;
 	}
 
@@ -426,16 +470,20 @@ async function loadExistingCeTodoFiles(cwd: string): Promise<{ filePath: string;
 
 function buildExistingCeTodoPromptSection(
 	cwd: string,
-	todos: { filePath: string; content: string }[],
+	todos: ExistingCeTodoFile[],
+	context?: CeResolvedSourceContext,
 ): string {
 	if (todos.length === 0) {
+		if (context?.featureId || context?.planPath || context?.prNumber) {
+			return "## Existing review todos\n\nNo open todo markdown files relevant to this feature / plan / PR were found under `todos/`.";
+		}
 		return "## Existing review todos\n\nNo existing todo markdown files were found under `todos/`.";
 	}
 
 	const lines = [
 		"## Existing review todos",
 		"",
-		"Before finalizing findings, read these existing todo markdown files so you can avoid duplicating already-tracked review work unless the new issue is materially different:",
+		"Before finalizing findings, read these open todo markdown files already relevant to this feature / plan / PR so you can avoid duplicating already-tracked review work unless the new issue is materially different:",
 		"",
 	];
 
@@ -498,22 +546,6 @@ async function resolveCeSourceContext(
 		}
 	}
 
-	const manifest = await loadCeWorkflowContext(cwd);
-	if (manifest && (manifest.planPath || manifest.brainstormPath || manifest.featureId)) {
-		return {
-			source: "manifest",
-			featureId: manifest.featureId,
-			topic: manifest.topic,
-			planPath: manifest.planPath,
-			brainstormPath: manifest.brainstormPath,
-			planKind: manifest.planKind,
-			phaseId: manifest.phaseId,
-			parentPlanPath: manifest.parentPlanPath,
-			branch: manifest.branch,
-			prNumber: manifest.prNumber,
-		};
-	}
-
 	return {
 		source: "none",
 		branch: target.type === "pullRequest" ? target.headBranch : undefined,
@@ -522,6 +554,9 @@ async function resolveCeSourceContext(
 }
 
 function buildCeFeatureIntentPromptSection(context: CeResolvedSourceContext): string {
+	const hasIntentDocs = Boolean(context.planPath || context.brainstormPath || context.featureId || context.topic);
+	if (!hasIntentDocs) return "";
+
 	const lines = buildCeWorkflowContextSummary({
 		featureId: context.featureId,
 		topic: context.topic,
@@ -536,12 +571,12 @@ function buildCeFeatureIntentPromptSection(context: CeResolvedSourceContext): st
 	if (lines.length === 0) return "";
 
 	return [
-		"## Pi-native feature intent context",
+		"## Explicit feature intent context",
 		"",
 		`Recovered from: ${context.source}`,
 		...lines,
 		"",
-		"Use the plan as the primary intent source for this review. Only read the brainstorm when you need extra product intent, rejected alternatives, or explicit non-goals that the plan compressed.",
+		"Use the linked plan as the primary intent source for this review. Only read the brainstorm when you need extra product intent, rejected alternatives, or explicit non-goals that the plan compressed.",
 		"Do not flag plan-explicit non-goals or brainstorm-rejected alternatives as omissions.",
 	].join("\n");
 }
@@ -567,6 +602,10 @@ function parseCeTodoPriority(line: string): CeReviewFinding["priority"] | null {
 	if (tagged === "p0" || tagged === "p1") return "p1";
 	if (tagged === "p2" || tagged === "p3") return tagged;
 
+	const bare = line.match(/(?:^|\s)(P[0-3])\b/i)?.[1]?.toLowerCase();
+	if (bare === "p0" || bare === "p1") return "p1";
+	if (bare === "p2" || bare === "p3") return bare;
+
 	if (/\bcritical\b/i.test(line)) return "p1";
 	if (/\bhigh\b/i.test(line)) return "p1";
 	if (/\bmedium\b/i.test(line)) return "p2";
@@ -576,13 +615,15 @@ function parseCeTodoPriority(line: string): CeReviewFinding["priority"] | null {
 
 function isLikelyCeTodoFindingLine(line: string): boolean {
 	if (isLikelyFindingLine(line)) return true;
-	return /^\s*(?:\d+)[.)]\s*(?:critical|high|medium|low)\b\s*[—–:-]/i.test(line);
+	if (/^\s*(?:\d+)[.)]\s*(?:P[0-3]|critical|high|medium|low)\b\s*[—–:-]/i.test(line)) return true;
+	return /^\s*(?:P[0-3]|critical|high|medium|low)\b\s*[—–:-]/i.test(line);
 }
 
 function cleanCeTodoFindingTitle(line: string): string {
 	return line
 		.replace(/^\s*(?:[-*+]|(?:\d+)[.)]|#{1,6})\s+/, "")
 		.replace(/^\[P[0-3]\]\s*[:\-–—]?\s*/i, "")
+		.replace(/^P[0-3]\b\s*[—–:-]\s*/i, "")
 		.replace(/^(critical|high|medium|low)\b\s*[—–:-]\s*/i, "")
 		.trim();
 }
@@ -725,7 +766,7 @@ async function createCeTodoFilesFromReview(
 			"",
 			"## Resources",
 			`- Review target: ${reviewTarget}`,
-			"- Source: native /workflows-review",
+			"- Source: native /ce:review", 
 			"",
 			"## Acceptance Criteria",
 			`- [ ] The issue described in \"${finding.title}\" is either fixed or explicitly rejected with rationale`,
@@ -745,7 +786,7 @@ async function createCeTodoFilesFromReview(
 			"- This item still needs skeptical adjudication before implementation",
 			"",
 			"## Notes",
-			"- Created automatically from native /workflows-review",
+			"- Created automatically from native /ce:review", 
 		].join("\n");
 
 		await fs.writeFile(filePath, content, "utf8");
@@ -1056,8 +1097,11 @@ async function getPrInfo(pi: ExtensionAPI, prNumber: number): Promise<{ baseBran
 async function getCurrentBranchPrInfo(
 	pi: ExtensionAPI,
 ): Promise<{ prNumber: number; baseBranch: string; title: string; headBranch: string; body?: string } | null> {
+	const currentBranch = await getCurrentBranch(pi);
+	if (!currentBranch) return null;
+
 	const repoSlug = await getOriginRepoSlug(pi);
-	const args = ["pr", "view", "--json", "number,baseRefName,title,headRefName,body"];
+	const args = ["pr", "view", currentBranch, "--json", "number,baseRefName,title,headRefName,body"];
 	if (repoSlug) args.push("--repo", repoSlug);
 	const { stdout, code } = await pi.exec("gh", args);
 	if (code !== 0) return null;
@@ -1222,6 +1266,56 @@ async function loadCompoundEngineeringReviewPromptTemplate(): Promise<string | n
 	}
 }
 
+type CompoundEngineeringLocalReviewConfig = {
+	filePath?: string;
+	reviewAgents: string[];
+	reviewContext?: string;
+};
+
+function stripMarkdownFrontmatter(markdown: string): string {
+	const normalized = markdown.replace(/\r\n/g, "\n");
+	if (!normalized.startsWith("---\n")) return markdown.trim();
+	const end = normalized.indexOf("\n---\n", 4);
+	if (end === -1) return markdown.trim();
+	return normalized.slice(end + 5).trim();
+}
+
+async function findProjectFileUpward(cwd: string, fileName: string): Promise<string | null> {
+	let currentDir = path.resolve(cwd);
+	while (true) {
+		const candidate = path.join(currentDir, fileName);
+		const stats = await fs.stat(candidate).catch(() => null);
+		if (stats?.isFile()) return candidate;
+		const parentDir = path.dirname(currentDir);
+		if (parentDir === currentDir) return null;
+		currentDir = parentDir;
+	}
+}
+
+async function loadCompoundEngineeringLocalReviewConfig(cwd: string): Promise<CompoundEngineeringLocalReviewConfig> {
+	const filePath = await findProjectFileUpward(cwd, "compound-engineering.local.md");
+	if (!filePath) {
+		return { reviewAgents: [] };
+	}
+
+	const content = await fs.readFile(filePath, "utf8").catch(() => "");
+	if (!content.trim()) {
+		return { filePath, reviewAgents: [] };
+	}
+
+	const frontmatter = parseMarkdownFrontmatter(content);
+	const reviewAgents = Array.isArray(frontmatter.review_agents)
+		? frontmatter.review_agents.filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+		: [];
+	const reviewContext = stripMarkdownFrontmatter(content);
+
+	return {
+		filePath,
+		reviewAgents,
+		reviewContext: reviewContext || undefined,
+	};
+}
+
 async function buildCompoundEngineeringReviewPrompt(
 	pi: ExtensionAPI,
 	target: ReviewTarget,
@@ -1232,10 +1326,28 @@ async function buildCompoundEngineeringReviewPrompt(
 	const targetLabel = getUserFacingHint(target);
 	const promptBody = template?.replace(/#\$ARGUMENTS/g, targetLabel) ?? "# Compound Engineering Review\n\nPerform a multi-agent review and synthesize the final findings.";
 	const reviewCwd = options?.cwd ?? ".";
-	const existingTodos = await loadExistingCeTodoFiles(reviewCwd);
-	const existingTodoSection = buildExistingCeTodoPromptSection(reviewCwd, existingTodos);
 	const sourceContext = options?.sourceContext ?? await resolveCeSourceContext(pi, reviewCwd, target);
+	const existingTodos = await loadExistingCeTodoFiles(reviewCwd, sourceContext);
+	const existingTodoSection = buildExistingCeTodoPromptSection(reviewCwd, existingTodos, sourceContext);
 	const featureIntentSection = buildCeFeatureIntentPromptSection(sourceContext);
+	const localReviewConfig = await loadCompoundEngineeringLocalReviewConfig(reviewCwd);
+	const configuredReviewers = localReviewConfig.reviewAgents;
+	const alwaysRunReviewers = ["agent-native-reviewer", "learnings-researcher"];
+	const fallbackReviewers = [
+		"security-sentinel",
+		"performance-oracle",
+		"architecture-strategist",
+		"pattern-recognition-specialist",
+		"code-simplicity-reviewer",
+	];
+	const baseReviewers = configuredReviewers.length > 0 ? configuredReviewers : fallbackReviewers;
+	const parallelReviewers = [...new Set([...baseReviewers, ...alwaysRunReviewers])];
+	const localReviewConfigSection = localReviewConfig.reviewContext
+		? `## Project review context\n\nUse this project-specific review context when running specialist reviewers and when synthesizing the final review:\n\n${localReviewConfig.reviewContext}`
+		: "";
+	const localReviewConfigInstruction = localReviewConfig.filePath
+		? `- Read \`${path.relative(reviewCwd, localReviewConfig.filePath).replace(/\\/g, "/")}\` and use its \`review_agents\` frontmatter as the primary specialist reviewer list. Pass the project review context above to each reviewer.`
+		: "- No `compound-engineering.local.md` file was found, so use the built-in fallback reviewer set for this run.";
 
 	return `${promptBody}
 
@@ -1245,18 +1357,22 @@ The review target has already been resolved natively. Use this exact target defi
 
 ${concreteTarget}
 
-${featureIntentSection ? `${featureIntentSection}\n\n` : ""}${existingTodoSection}
+${featureIntentSection ? `${featureIntentSection}\n\n` : ""}${localReviewConfigSection ? `${localReviewConfigSection}\n\n` : ""}${existingTodoSection}
 
 ## Pi-native execution requirements
 
-- Do **not** load or rely on the migrated \`~/.agents/skills/workflows-review/SKILL.md\` skill for this run. The target has already been resolved natively.
+- Do **not** load or rely on the migrated \`ce-review\` / legacy \`workflows-review\` skill for this run. The target has already been resolved natively.
 - Before doing your own synthesis, you **must** invoke the \`subagent\` tool to run specialist reviewers in parallel.
 - Start by scoping the diff with \`git diff --name-only\` against the resolved target.
-- Run these reviewers in parallel when available and relevant: \`security-sentinel\`, \`performance-oracle\`, \`architecture-strategist\`, \`pattern-recognition-specialist\`, \`code-simplicity-reviewer\`, and \`agent-native-reviewer\`.
+${localReviewConfigInstruction}
+- Run these reviewers in parallel when available and relevant: ${parallelReviewers.map((reviewer) => `\`${reviewer}\``).join(", ")}.
+- Always include \`agent-native-reviewer\` for agent-accessibility parity and \`learnings-researcher\` to search existing \`docs/solutions/\` / prior learnings relevant to this diff.
 - If the diff touches \`packages/\` or shared framework files, also run \`makerkit-boilerplate-reviewer\`.
 - If the diff touches migrations, schema files, or data backfills, also run \`schema-drift-detector\`, \`data-migration-expert\`, and \`deployment-verification-agent\`.
 - If one of the suggested reviewer skills is unavailable, continue with the available ones and note the missing reviewer briefly in your final synthesis.
 - Review the existing todo markdown files above before finalizing findings. Avoid duplicating an already-open todo unless the new issue is materially different or meaningfully more specific.
+- Use the \`ce_todo\` tool as the source of truth for todo creation and updates during this review. Do **not** rely on the final prose report to create todos.
+- For every actionable finding that is not already tracked, create or update a pending markdown todo via \`ce_todo\` before returning your final human summary.
 - After the parallel reviewer outputs return, inspect the most relevant files yourself and produce one final synthesized review.
 - Final output must be a concise review report with findings and verdict, not a work log.
 `;
@@ -1446,12 +1562,12 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			if (parsed) {
 				if (parsed.type === "pr") {
 					const target = await handlePrCheckout(ctx, parsed.ref);
-					return target ? { target, includeLocalChanges: true } : null;
+					return target ? { target, includeLocalChanges: false } : null;
 				}
 
 				return {
 					target: parsed,
-					includeLocalChanges: parsed.type === "baseBranch" || parsed.type === "pullRequest",
+					includeLocalChanges: parsed.type === "baseBranch",
 				};
 			}
 
@@ -1465,7 +1581,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 
 			if (parsePrReference(trimmed)) {
 				const target = await handlePrCheckout(ctx, trimmed);
-				return target ? { target, includeLocalChanges: true } : null;
+				return target ? { target, includeLocalChanges: false } : null;
 			}
 
 			return {
@@ -1485,7 +1601,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 					headBranch: currentBranchPr.headBranch,
 					body: currentBranchPr.body,
 				},
-				includeLocalChanges: true,
+				includeLocalChanges: false,
 				resolutionReason: `current branch PR #${currentBranchPr.prNumber}`,
 			};
 		}
@@ -1593,31 +1709,12 @@ export default function reviewExtension(pi: ExtensionAPI) {
 
 		const entries = ctx.sessionManager.getEntries();
 		const messageCount = entries.filter((entry) => entry.type === "message").length;
-		let useFreshSession = messageCount === 0;
-
+		const useFreshSession = true;
 		if (messageCount > 0) {
-			const choice = await ctx.ui.select("Start review in:", ["Empty branch", "Current session"]);
-			if (choice === undefined) {
-				ctx.ui.notify("Review cancelled", "info");
-				return;
-			}
-			useFreshSession = choice === "Empty branch";
+			ctx.ui.notify("Compound review always starts in Empty branch mode for isolation and fresh context.", "info");
 		}
 
 		const sourceContext = await resolveCeSourceContext(pi, ctx.cwd, request.target);
-		if (sourceContext.featureId || sourceContext.planPath || sourceContext.brainstormPath) {
-			await mergeCeWorkflowContext(ctx.cwd, {
-				featureId: sourceContext.featureId,
-				topic: sourceContext.topic,
-				planPath: sourceContext.planPath,
-				brainstormPath: sourceContext.brainstormPath,
-				planKind: sourceContext.planKind as any,
-				phaseId: sourceContext.phaseId,
-				parentPlanPath: sourceContext.parentPlanPath,
-				branch: sourceContext.branch,
-				prNumber: sourceContext.prNumber,
-			});
-		}
 		const compoundEngineeringPrompt = await buildCompoundEngineeringReviewPrompt(pi, request.target, {
 			includeLocalChanges: request.includeLocalChanges === true,
 			cwd: ctx.cwd,
@@ -1628,7 +1725,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			includeLocalChanges: request.includeLocalChanges === true,
 			promptOverride: compoundEngineeringPrompt,
 			hintOverride: `Compound review: ${getUserFacingHint(request.target)}`,
-			createCeTodos: true,
+			createCeTodos: false,
 			ceSourceContext: sourceContext,
 		});
 	}
@@ -2512,7 +2609,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerCommand("workflows-review", {
+	pi.registerCommand("ce:review", {
 		description: "Compound Engineering review with PR-first target resolution",
 		handler: async (args, ctx) => {
 			await runCeReviewCommand(args, ctx);
@@ -2520,24 +2617,24 @@ export default function reviewExtension(pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("ce-review", {
-		description: "Alias for /workflows-review",
+		description: "Alias for /ce:review",
 		handler: async (args, ctx) => {
 			await runCeReviewCommand(args, ctx);
 		},
 	});
 
-	pi.registerCommand("ce:review", {
-		description: "Deprecated alias for /workflows-review",
+	pi.registerCommand("workflows-review", {
+		description: "Legacy alias for /ce:review",
 		handler: async (args, ctx) => {
-			ctx.ui.notify("/ce:review is deprecated; running canonical /workflows-review", "info");
+			ctx.ui.notify("/workflows-review is legacy; running canonical /ce:review", "info");
 			await runCeReviewCommand(args, ctx);
 		},
 	});
 
 	pi.registerCommand("workflows:review", {
-		description: "Deprecated alias for /workflows-review",
+		description: "Deprecated alias for /ce:review",
 		handler: async (args, ctx) => {
-			ctx.ui.notify("/workflows:review is deprecated; running canonical /workflows-review", "info");
+			ctx.ui.notify("/workflows:review is deprecated; running canonical /ce:review", "info");
 			await runCeReviewCommand(args, ctx);
 		},
 	});

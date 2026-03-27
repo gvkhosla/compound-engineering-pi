@@ -26,8 +26,9 @@ This command takes a work document (plan, specification, or todo file) and execu
    - Treat the referenced plan as the canonical implementation scope for this work
    - Only go back to the brainstorm if you need additional product intent, rejected alternatives, or explicit non-goals that the plan does not capture clearly
    - If anything is unclear or ambiguous, ask clarifying questions now
-   - Get user approval to proceed
-   - **Do not skip this** - better to ask questions now than build the wrong thing
+   - If the user explicitly invoked `/workflows-work <plan-or-todo-path>`, treat that as approval to begin implementation. Do **not** ask for generic permission to start.
+   - Only pause for user input when there is a real unresolved decision (for example: branch/worktree choice on the default branch, an explicit open scope question still left in the plan, or a risky ambiguity the plan did not resolve).
+   - **Do not skip this** - better to ask the one necessary question now than build the wrong thing
 
 2. **Setup Environment**
 

@@ -20,7 +20,7 @@ Use this checklist when introducing a new target provider:
 
 2. **Define types and mapping**
    - Add provider-specific types under `src/types/`.
-   - Implement conversion logic in `src/converters/` (from Claude → provider).
+   - Implement conversion logic in `src/converters/` (from Claude -> provider).
    - Keep mappings explicit: tools, permissions, hooks/events, model naming.
 
 3. **Wire the CLI**
@@ -42,7 +42,7 @@ Add a new provider when at least one of these is true:
 
 - A real user/workflow needs it now.
 - The target format is stable and documented.
-- There’s a clear mapping for tools/permissions/hooks.
+- There's a clear mapping for tools/permissions/hooks.
 - You can write fixtures + tests that validate the mapping.
 
 Avoid adding a provider if the target spec is unstable or undocumented.

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 
-export const CE_CONTEXT_RELATIVE_PATH = ".pi/compound-engineering/context.json";
+export const CE_CONTEXT_RELATIVE_PATH = ".pi/compound-engineering/context.local.json";
 
 export type CePlanKind = "single" | "master" | "phase" | "unknown";
 
@@ -190,6 +190,8 @@ export async function deriveContextFromBrainstormFile(
     featureId,
     topic,
     brainstormPath: relativePath,
+    branch: undefined,
+    prNumber: undefined,
   };
 }
 
@@ -228,6 +230,8 @@ export async function deriveContextFromPlanFile(
     planKind,
     phaseId,
     parentPlanPath,
+    branch: undefined,
+    prNumber: undefined,
   };
 }
 

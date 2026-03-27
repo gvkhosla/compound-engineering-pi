@@ -32,7 +32,9 @@ Do not recommend deleting, removing, or gitignoring these Compound Engineering w
 
 ## Expected output
 
-Return a concise final review report with:
+Before returning your final human summary, use the `ce_todo` tool to create or update pending markdown todos for each actionable finding that is not already tracked.
+
+Then return a concise final review report with:
 - prioritized findings
 - brief supporting evidence
 - a clear verdict

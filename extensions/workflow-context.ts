@@ -41,6 +41,14 @@ export default function workflowContextExtension(pi: ExtensionAPI) {
     if (!candidatePath) return;
 
     const absolutePath = path.resolve(ctx.cwd, candidatePath);
+    const relativePath = path.relative(ctx.cwd, absolutePath).replace(/\\/g, "/");
+
+    // Brainstorms are exploratory inputs, not active implementation context.
+    // Do not let an unrelated brainstorm draft overwrite the current branch/plan review context.
+    if (/^docs\/brainstorms\/.*\.md$/i.test(relativePath)) {
+      return;
+    }
+
     const updated = await refreshCeWorkflowContextFromDocument(ctx.cwd, absolutePath);
     if (!updated || !ctx.hasUI) return;
 

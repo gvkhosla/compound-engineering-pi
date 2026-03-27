@@ -102,7 +102,7 @@ Use **ask_user_question tool** to present next steps:
 
 **Options:**
 1. **Review and refine** - Improve the document through structured self-review
-2. **Proceed to planning** - Invoke `/workflows-plan` as a Pi prompt (will auto-detect this brainstorm)
+2. **Proceed to planning** - Invoke `/workflows-plan` as a Pi prompt. Pi will hand planning off in a fresh session context when this brainstorm has already been written to disk.
 3. **Share to Proof** - Upload to Proof for collaborative review and sharing
 4. **Ask more questions** - Continue clarifying before moving on
 5. **Done for now** - Return later
