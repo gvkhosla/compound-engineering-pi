@@ -86,6 +86,30 @@ function resolveTaskCwd(baseCwd: string, taskCwd?: string): string {
   return path.resolve(baseCwd, expanded)
 }
 
+function isPackageConfigured(name: string): boolean {
+  const settingsFiles = [
+    path.join(os.homedir(), ".pi", "settings.json"),
+    path.join(os.homedir(), ".pi", "agent", "settings.json"),
+  ]
+  const packagePrefix = "npm:" + name
+
+  for (const file of settingsFiles) {
+    try {
+      if (!fs.existsSync(file)) continue
+      const raw = fs.readFileSync(file, "utf8")
+      const parsed = JSON.parse(raw) as { packages?: string[] }
+      const packages = Array.isArray(parsed.packages) ? parsed.packages : []
+      if (packages.some((entry) => entry === packagePrefix || entry.startsWith(packagePrefix + "@"))) {
+        return true
+      }
+    } catch {
+      // ignore malformed settings files
+    }
+  }
+
+  return false
+}
+
 async function runSingleSubagent(
   pi: ExtensionAPI,
   baseCwd: string,
@@ -149,7 +173,16 @@ async function runParallelSubagents(
   return results
 }
 
-function formatSubagentSummary(results: SubagentResult[]): string {
+function getSubagentBody(result: SubagentResult): string {
+  return result.output || result.stderr || "(no output)"
+}
+
+function formatSingleSubagentResult(result: SubagentResult): string {
+  const status = result.exitCode === 0 ? "completed" : "failed"
+  return "Subagent " + result.agent + " " + status + ".\n\n" + getSubagentBody(result)
+}
+
+function formatParallelSubagentSummary(results: SubagentResult[], includeOutputs = false): string {
   if (results.length === 0) return "No subagent work was executed."
 
   const success = results.filter((result) => result.exitCode === 0).length
@@ -160,13 +193,34 @@ function formatSubagentSummary(results: SubagentResult[]): string {
 
   const lines = results.map((result) => {
     const status = result.exitCode === 0 ? "ok" : "error"
-    const body = result.output || result.stderr || "(no output)"
+    const body = getSubagentBody(result)
+
+    if (includeOutputs) {
+      return "\n[" + status + "] " + result.agent + "\n" + body
+    }
+
     const preview = body.split("\n").slice(0, 6).join("\n")
     return "\n[" + status + "] " + result.agent + "\n" + preview
   })
 
   return header + lines.join("\n")
 }
+
+function formatChainSubagentResult(results: SubagentResult[], includeOutputs = false): string {
+  if (results.length === 0) return "No subagent work was executed."
+  if (includeOutputs) return formatParallelSubagentSummary(results, true)
+
+  const final = results[results.length - 1]
+  const steps = results
+    .map((result, index) => {
+      const status = result.exitCode === 0 ? "ok" : "error"
+      return "[" + status + "] step " + (index + 1) + " - " + result.agent
+    })
+    .join("\n")
+
+  return "Subagent chain completed.\n" + steps + "\n\nFinal output:\n" + getSubagentBody(final)
+}
+
 
 export default function (pi: ExtensionAPI) {
   pi.registerTool({
@@ -244,8 +298,11 @@ export default function (pi: ExtensionAPI) {
     cwd: Type.Optional(Type.String({ description: "Optional working directory for this task" })),
   })
 
-  pi.registerTool({
-    name: "subagent",
+  if (isPackageConfigured("pi-subagents")) {
+    console.warn('[compound-engineering] Skipping tool registration for "subagent" because pi-subagents is installed.')
+  } else {
+    pi.registerTool({
+      name: "subagent",
     label: "Subagent",
     description: "Run one or more skill-based subagent tasks. Supports single, parallel, and chained execution.",
     parameters: Type.Object({
@@ -256,6 +313,7 @@ export default function (pi: ExtensionAPI) {
       chain: Type.Optional(Type.Array(subagentTaskSchema, { description: "Sequential tasks; supports {previous} placeholder" })),
       maxConcurrency: Type.Optional(Type.Number({ default: 4 })),
       timeoutMs: Type.Optional(Type.Number({ default: DEFAULT_SUBAGENT_TIMEOUT_MS })),
+      includeOutputs: Type.Optional(Type.Boolean({ default: false, description: "Include full output for each subagent in the final result text." })),
     }),
     async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const hasSingle = Boolean(params.agent && params.task)
@@ -272,6 +330,7 @@ export default function (pi: ExtensionAPI) {
       }
 
       const timeoutMs = Number(params.timeoutMs || DEFAULT_SUBAGENT_TIMEOUT_MS)
+      const includeOutputs = Boolean(params.includeOutputs)
 
       try {
         if (hasSingle) {
@@ -283,7 +342,7 @@ export default function (pi: ExtensionAPI) {
             timeoutMs,
           )
 
-          const body = formatSubagentSummary([result])
+          const body = formatSingleSubagentResult(result)
           return {
             isError: result.exitCode !== 0,
             content: [{ type: "text", text: body }],
@@ -310,7 +369,7 @@ export default function (pi: ExtensionAPI) {
             },
           )
 
-          const body = formatSubagentSummary(results)
+          const body = formatParallelSubagentSummary(results, includeOutputs)
           const hasFailure = results.some((result) => result.exitCode !== 0)
 
           return {
@@ -344,7 +403,7 @@ export default function (pi: ExtensionAPI) {
           if (result.exitCode !== 0) break
         }
 
-        const body = formatSubagentSummary(results)
+        const body = formatChainSubagentResult(results, includeOutputs)
         const hasFailure = results.some((result) => result.exitCode !== 0)
 
         return {
@@ -361,6 +420,7 @@ export default function (pi: ExtensionAPI) {
       }
     },
   })
+  }
 
   pi.registerTool({
     name: "mcporter_list",

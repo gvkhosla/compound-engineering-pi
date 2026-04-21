@@ -22,9 +22,13 @@ npm i -g mcporter
 
 ### Converter path (advanced/custom)
 
+Prefer the upstream converter package:
+
 ```bash
-bunx compound-engineering-pi install compound-engineering --to pi
+bunx @every-env/compound-plugin install compound-engineering --to pi
 ```
+
+The local `compound-engineering-pi` CLI remains available for compatibility, but upstream is the canonical place for converter behavior.
 
 You will get generated resources under your Pi directory:
 
@@ -33,7 +37,9 @@ You will get generated resources under your Pi directory:
 - `extensions/compound-engineering-compat.ts` (compat tools)
 - `compound-engineering/mcporter.json` (MCPorter server config)
 
-The published package already includes prebuilt `extensions/`, `skills/`, and `prompts/` for Pi package installs.
+The published package already includes prebuilt `extensions/`, `skills/`, and compatibility `prompts/` for Pi package installs.
+
+This repo now tracks the newer upstream Compound Engineering skill set while keeping the older `/workflows-*` prompts as Pi-friendly compatibility aliases.
 
 For package installs, `mcporter_list`/`mcporter_call` also fall back to a bundled config at `pi-resources/compound-engineering/mcporter.json` if no project/global config exists yet.
 
@@ -77,6 +83,12 @@ Supports:
 - **parallel**: `{ tasks: [...] }`
 - **chain**: `{ chain: [...] }` with `{previous}` placeholder support
 
+Behavior notes:
+- **single mode returns the full subagent output** in the final tool result
+- **chain mode returns the final step output** plus a step summary
+- **parallel mode returns a compact summary by default**; pass `includeOutputs: true` to include full output for each completed subagent
+- if you install a richer `pi-subagents` package, this compatibility extension will automatically step aside and let that tool handle subagents instead
+
 ### `mcporter_list`
 Lists tools for an MCP server via MCPorter.
 
@@ -109,6 +121,16 @@ This syncs:
 - MCP servers from `~/.claude/settings.json` into Pi MCPorter config
 
 ---
+
+## Keeping this package synced with upstream
+
+```bash
+bun run sync:upstream
+```
+
+By default this pulls from a sibling checkout at `../compound-engineering-plugin`, refreshes the vendored `plugins/compound-engineering` snapshot, and regenerates the bundled Pi skills/MCPorter config.
+
+Maintainer rule: changes to conversion behavior, plugin content, or target semantics should be made upstream first. This repo is the Pi distribution layer.
 
 ## Recommended OSS adoption flow
 
@@ -144,6 +166,12 @@ Check:
 - target skill exists in `.pi/skills/<name>/SKILL.md`
 - nested Pi call works: `pi --no-session -p "/skill:<name> ..."`
 - permissions/sandbox rules in your environment
+
+### I want to see more subagent output
+- single subagents now return their full output in the tool result
+- chain runs return the final step output plus a step summary
+- parallel runs can return all outputs with `includeOutputs: true`
+- if you prefer a richer live subagent UI, install `pi-subagents`; `compound-engineering-pi` will automatically defer to it when present
 
 ---
 

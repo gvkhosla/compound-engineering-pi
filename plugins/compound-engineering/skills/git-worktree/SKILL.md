@@ -16,6 +16,7 @@ This skill provides a unified interface for managing Git worktrees across your d
 - **Interactive confirmations** at each step
 - **Automatic .gitignore management** for worktree directory
 - **Automatic .env file copying** from main repo to new worktrees
+- **Automatic dev tool trusting** for mise and direnv configs with review-safe guardrails
 
 ## CRITICAL: Always Use the Manager Script
 
@@ -23,8 +24,11 @@ This skill provides a unified interface for managing Git worktrees across your d
 
 The script handles critical setup that raw git commands don't:
 1. Copies `.env`, `.env.local`, `.env.test`, etc. from main repo
-2. Ensures `.worktrees` is in `.gitignore`
-3. Creates consistent directory structure
+2. Trusts dev tool configs with branch-aware safety rules:
+   - mise: auto-trust only when unchanged from a trusted baseline branch
+   - direnv: auto-allow only for trusted base branches; review worktrees stay manual
+3. Ensures `.worktrees` is in `.gitignore`
+4. Creates consistent directory structure
 
 ```bash
 # ✅ CORRECT - Always use the script
@@ -38,8 +42,8 @@ git worktree add .worktrees/feature-name -b feature-name main
 
 Use this skill in these scenarios:
 
-1. **Code Review (`/workflows:review`)**: If NOT already on the target branch (PR branch or requested branch), offer worktree for isolated review
-2. **Feature Work (`/workflows:work`)**: Always ask if user wants parallel worktree or live branch work
+1. **Code Review (`/ce:review`)**: If NOT already on the target branch (PR branch or requested branch), offer worktree for isolated review
+2. **Feature Work (`/ce:work`)**: Always ask if user wants parallel worktree or live branch work
 3. **Parallel Development**: When working on multiple features simultaneously
 4. **Cleanup**: After completing work in a worktree
 
@@ -47,7 +51,7 @@ Use this skill in these scenarios:
 
 ### In Claude Code Workflows
 
-The skill is automatically called from `/workflows:review` and `/workflows:work` commands:
+The skill is automatically called from `/ce:review` and `/ce:work` commands:
 
 ```
 # For review: offers worktree if not on PR branch
@@ -95,7 +99,11 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh creat
 2. Updates the base branch from remote
 3. Creates new worktree and branch
 4. **Copies all .env files from main repo** (.env, .env.local, .env.test, etc.)
-5. Shows path for cd-ing to the worktree
+5. **Trusts dev tool configs** with branch-aware safety rules:
+   - trusted bases (`main`, `develop`, `dev`, `trunk`, `staging`, `release/*`) compare against themselves
+   - other branches compare against the default branch
+   - direnv auto-allow is skipped on non-trusted bases because `.envrc` can source unchecked files
+6. Shows path for cd-ing to the worktree
 
 ### `list` or `ls`
 
@@ -204,7 +212,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/git-worktree/scripts/worktree-manager.sh clean
 
 ## Integration with Workflows
 
-### `/workflows:review`
+### `/ce:review`
 
 Instead of always creating a worktree:
 
@@ -217,7 +225,7 @@ Instead of always creating a worktree:
    - no → proceed with PR diff on current branch
 ```
 
-### `/workflows:work`
+### `/ce:work`
 
 Always offer choice:
 
