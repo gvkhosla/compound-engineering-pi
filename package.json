@@ -60,8 +60,14 @@
     "prepublishOnly": "bun test"
   },
   "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
     "@mariozechner/pi-coding-agent": "*",
     "@sinclair/typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@mariozechner/pi-coding-agent": {
+      "optional": true
+    }
   },
   "pi": {
     "extensions": [
