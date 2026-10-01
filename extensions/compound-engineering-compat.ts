@@ -13,6 +13,7 @@ type SubagentTask = {
   agent: string
   task: string
   cwd?: string
+  model?: string
 }
 
 type SubagentResult = {
@@ -128,8 +129,10 @@ async function runSingleSubagent(
   }
 
   const cwd = resolveTaskCwd(baseCwd, task.cwd)
+  const model = typeof task.model === "string" ? task.model.trim() : ""
+  const modelFlag = model ? " --model " + shellEscape(model) : ""
   const prompt = "/skill:" + agent + " " + taskText
-  const script = "cd " + shellEscape(cwd) + " && pi --no-session -p " + shellEscape(prompt)
+  const script = "cd " + shellEscape(cwd) + " && pi --no-session" + modelFlag + " -p " + shellEscape(prompt)
   const result = await pi.exec("bash", ["-lc", script], { signal, timeout: timeoutMs })
 
   return {
@@ -296,6 +299,9 @@ export default function (pi: ExtensionAPI) {
     agent: Type.String({ description: "Skill/agent name to invoke" }),
     task: Type.String({ description: "Task instructions for that skill" }),
     cwd: Type.Optional(Type.String({ description: "Optional working directory for this task" })),
+    model: Type.Optional(Type.String({
+      description: 'Optional model override. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to use Pi session default.'
+    })),
   })
 
   if (isPackageConfigured("pi-subagents")) {
@@ -309,6 +315,9 @@ export default function (pi: ExtensionAPI) {
       agent: Type.Optional(Type.String({ description: "Single subagent name" })),
       task: Type.Optional(Type.String({ description: "Single subagent task" })),
       cwd: Type.Optional(Type.String({ description: "Working directory for single mode" })),
+      model: Type.Optional(Type.String({
+        description: 'Optional model override for single mode, or default for tasks/chain entries that omit model. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to use Pi session default.'
+      })),
       tasks: Type.Optional(Type.Array(subagentTaskSchema, { description: "Parallel subagent tasks" })),
       chain: Type.Optional(Type.Array(subagentTaskSchema, { description: "Sequential tasks; supports {previous} placeholder" })),
       maxConcurrency: Type.Optional(Type.Number({ default: 4 })),
@@ -337,7 +346,7 @@ export default function (pi: ExtensionAPI) {
           const result = await runSingleSubagent(
             pi,
             ctx.cwd,
-            { agent: params.agent!, task: params.task!, cwd: params.cwd },
+            { agent: params.agent!, task: params.task!, cwd: params.cwd, model: params.model },
             signal,
             timeoutMs,
           )
@@ -351,7 +360,10 @@ export default function (pi: ExtensionAPI) {
         }
 
         if (hasTasks) {
-          const tasks = params.tasks as SubagentTask[]
+          const tasks = (params.tasks as SubagentTask[]).map((task) => ({
+            ...task,
+            model: task.model ?? params.model,
+          }))
           const maxConcurrency = Number(params.maxConcurrency || 4)
 
           const results = await runParallelSubagents(
@@ -388,7 +400,7 @@ export default function (pi: ExtensionAPI) {
           const result = await runSingleSubagent(
             pi,
             ctx.cwd,
-            { agent: step.agent, task: resolvedTask, cwd: step.cwd },
+            { agent: step.agent, task: resolvedTask, cwd: step.cwd, model: step.model ?? params.model },
             signal,
             timeoutMs,
           )
