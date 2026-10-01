@@ -10,8 +10,8 @@ This guide explains how to use the Compound Engineering plugin in **Pi** with th
 # 1) Install as a Pi package
 # after npm publish:
 pi install npm:compound-engineering-pi
-# fallback (works now):
-pi install git:github.com/gvkhosla/compound-engineering-pi@v0.2.3
+# fallback (after the v0.3.0 GitHub release):
+pi install git:github.com/gvkhosla/compound-engineering-pi@v0.3.0
 
 # 2) Install MCPorter (for MCP-style tool access in Pi)
 npm i -g mcporter
@@ -82,6 +82,41 @@ Supports:
 - **single**: `{ agent, task }`
 - **parallel**: `{ tasks: [...] }`
 - **chain**: `{ chain: [...] }` with `{previous}` placeholder support
+
+Model selection in the compatibility tool:
+- `model` is optional and forwarded to `pi --model`. Use a fuzzy name such as `haiku`, a `provider/modelId`, or a model with a `:thinking` suffix.
+- In parallel and chain modes, a top-level `model` is the default for entries that omit their own `model`.
+- An entry's explicit `model` wins over the top-level default. An empty or whitespace-only string deliberately clears that default; it does not inherit it.
+- Without an override, the child Pi process uses its configured default. The parent's active session model is not automatically inherited.
+- Model names are trimmed and shell-quoted. Selection and authentication are handled by the installed Pi CLI; the model must be available there.
+
+Example tool arguments (these are JSON inputs to `subagent`, not shell commands):
+
+```json
+{ "agent": "repo-research-analyst", "task": "Find relevant code", "model": "haiku" }
+```
+
+```json
+{
+  "model": "haiku",
+  "tasks": [
+    { "agent": "repo-research-analyst", "task": "Find relevant code" },
+    { "agent": "kieran-typescript-reviewer", "task": "Review correctness", "model": "sonnet" }
+  ]
+}
+```
+
+```json
+{
+  "model": "haiku",
+  "chain": [
+    { "agent": "repo-research-analyst", "task": "Find relevant code" },
+    { "agent": "kieran-typescript-reviewer", "task": "Review these findings: {previous}", "model": "sonnet" }
+  ]
+}
+```
+
+If `pi-subagents` is installed, its own tool/schema handles model selection instead.
 
 Behavior notes:
 - **single mode returns the full subagent output** in the final tool result

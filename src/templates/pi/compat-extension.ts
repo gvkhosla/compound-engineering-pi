@@ -300,7 +300,7 @@ export default function (pi: ExtensionAPI) {
     task: Type.String({ description: "Task instructions for that skill" }),
     cwd: Type.Optional(Type.String({ description: "Optional working directory for this task" })),
     model: Type.Optional(Type.String({
-      description: 'Optional model override. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to use Pi session default.'
+      description: 'Optional model override. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to inherit the top-level model. Empty/whitespace values clear that override and use the configured default of the child Pi process.'
     })),
   })
 
@@ -316,7 +316,7 @@ export default function (pi: ExtensionAPI) {
       task: Type.Optional(Type.String({ description: "Single subagent task" })),
       cwd: Type.Optional(Type.String({ description: "Working directory for single mode" })),
       model: Type.Optional(Type.String({
-        description: 'Optional model override for single mode, or default for tasks/chain entries that omit model. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to use Pi session default.'
+        description: 'Optional model override for single mode, or default for tasks/chain entries that omit model. Accepts "provider/modelId" or fuzzy name (e.g. "haiku", "sonnet"). Omit to keep the configured default of the child Pi process.'
       })),
       tasks: Type.Optional(Type.Array(subagentTaskSchema, { description: "Parallel subagent tasks" })),
       chain: Type.Optional(Type.Array(subagentTaskSchema, { description: "Sequential tasks; supports {previous} placeholder" })),

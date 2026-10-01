@@ -1,11 +1,11 @@
-# Publish to npm (super simple)
+# Publish to npm
 
-If this is your first time publishing, run these exact commands in order.
+Run these steps only after the reviewed feature and release-preparation changes are merged into `main`. Publishing and pushing a release tag are maintainer actions; validation and dry runs do not publish anything.
 
 ## 0) Go to repo
 
 ```bash
-cd /tmp/compound-engineering-pi
+cd /path/to/compound-engineering-pi
 ```
 
 ## 1) Login once
@@ -37,9 +37,19 @@ npm run release:publish
 npm view compound-engineering-pi version
 ```
 
-You should see: `0.2.3`
+For this release, you should see: `0.3.0` (matching `package.json`).
 
-## 5) Verify Pi install path
+## 5) Tag and create the GitHub release
+
+After npm publication succeeds, tag the reviewed release commit and create the GitHub release:
+
+```bash
+git tag v0.3.0
+git push origin v0.3.0
+gh release create v0.3.0 --title "v0.3.0 - Per-subagent model selection" --notes-file RELEASE_NOTES_v0.3.0.md
+```
+
+## 6) Verify Pi install path
 
 ```bash
 pi install npm:compound-engineering-pi -l
@@ -71,9 +81,4 @@ npm publish --access public
 ```
 
 ### `version already exists`
-Bump version, then publish again:
-
-```bash
-npm version patch
-npm publish --access public
-```
+Check whether the intended release is already published. If a new version is needed, choose it explicitly and update `package.json`, release notes, and tag commands together. Repeat the preflight checks before publishing; do not blindly retry with another version.

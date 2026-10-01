@@ -78,6 +78,26 @@ Subagent output behavior:
 - parallel runs stay compact by default, but support `includeOutputs: true`
 - if you install a richer `pi-subagents` package, this package automatically defers to it
 
+Subagent model selection (compatibility tool):
+- pass `model: "haiku"` or a `provider/modelId` (optionally with a `:thinking` suffix) for a single task
+- set a top-level `model` as the default for `tasks[]` or `chain[]`; each entry can override it
+- omitted models keep the child Pi process's configured default, not necessarily the parent session's active model
+- an empty or whitespace-only entry model clears the top-level default
+
+Example `subagent` tool arguments for a cheaper scout and a stronger reviewer:
+
+```json
+{
+  "model": "haiku",
+  "tasks": [
+    { "agent": "repo-research-analyst", "task": "Find the relevant code" },
+    { "agent": "kieran-typescript-reviewer", "task": "Review correctness", "model": "sonnet" }
+  ]
+}
+```
+
+Use models available and authenticated in your Pi installation. See [the Pi guide](docs/pi.md#subagent) for all three modes.
+
 ### Conversion and sync
 
 For converter usage, prefer the upstream package:
