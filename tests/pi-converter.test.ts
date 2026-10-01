@@ -1,22 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import fs from "node:fs"
 import path from "path"
 import { loadClaudePlugin } from "../src/parsers/claude"
 import { convertClaudeToPi } from "../src/converters/claude-to-pi"
 import { PI_COMPAT_EXTENSION_SOURCE } from "../src/templates/pi/compat-extension"
 import { parseFrontmatter } from "../src/utils/frontmatter"
 import type { ClaudePlugin } from "../src/types/claude"
-
-const chainTaskReconstruction =
-  "{ agent: step.agent, task: resolvedTask, cwd: step.cwd, model: step.model ?? params.model }"
-
-const singleModeTaskReconstruction =
-  "{ agent: params.agent!, task: params.task!, cwd: params.cwd, model: params.model }"
-
-const parallelModelFallback = "model: task.model ?? params.model"
-
-const modelFlagAssembly =
-  'const model = typeof task.model === "string" ? task.model.trim() : ""\n  const modelFlag = model ? " --model " + shellEscape(model) : ""'
 
 const fixtureRoot = path.join(import.meta.dir, "fixtures", "sample-plugin")
 
@@ -132,24 +120,7 @@ describe("convertClaudeToPi", () => {
     expect(parsedPrompt.body).toContain("mcporter_call")
   })
 
-  test("preserves model overrides across single, parallel, and chain modes", () => {
-    // Chain rebuilds each step for {previous}; parallel inherits root model when a step omits it;
-    // single mode passes params.model; whitespace-only models must not inject --model.
-    const sources = [
-      PI_COMPAT_EXTENSION_SOURCE,
-      fs.readFileSync(
-        path.join(import.meta.dir, "..", "extensions", "compound-engineering-compat.ts"),
-        "utf8",
-      ),
-    ]
-
-    for (const source of sources) {
-      expect(source).toContain(chainTaskReconstruction)
-      expect(source).toContain(singleModeTaskReconstruction)
-      expect(source).toContain(parallelModelFallback)
-      expect(source).toContain(modelFlagAssembly)
-    }
-
+  test("emits the canonical compatibility extension", () => {
     const bundle = convertClaudeToPi(
       {
         root: "/tmp/plugin",
@@ -163,9 +134,6 @@ describe("convertClaudeToPi", () => {
       { agentMode: "subagent", inferTemperature: false, permissions: "none" },
     )
     const compatExtension = bundle.extensions.find((extension) => extension.name === "compound-engineering-compat.ts")
-    expect(compatExtension?.content).toContain(chainTaskReconstruction)
-    expect(compatExtension?.content).toContain(singleModeTaskReconstruction)
-    expect(compatExtension?.content).toContain(parallelModelFallback)
-    expect(compatExtension?.content).toContain(modelFlagAssembly)
+    expect(compatExtension?.content).toBe(PI_COMPAT_EXTENSION_SOURCE)
   })
 })
