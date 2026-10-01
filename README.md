@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/compound-engineering-pi)](https://www.npmjs.com/package/compound-engineering-pi)
 [![Build Status](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/gvkhosla/compound-engineering-pi/actions/workflows/ci.yml)
 
-Compound Engineering adapted for [Pi](https://github.com/mariozechner/pi-coding-agent). 84 skills, 9 legacy workflow prompts for compatibility, and a native compatibility layer, all installable in one command.
+Compound Engineering adapted for [Pi](https://github.com/earendil-works/pi). 84 skills, 9 legacy workflow prompts for compatibility, and a native compatibility layer, all installable in one command.
 
 ## Install
 
